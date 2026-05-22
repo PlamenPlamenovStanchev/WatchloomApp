@@ -1,0 +1,24 @@
+{
+  "name": "watchloom",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Multi-platform movie and TV catalog app monorepo.",
+  "workspaces": [
+    "watchloom-web",
+    "watchloom-mobile",
+    "watchloom-shared"
+  ],
+  "scripts": {
+    "dev:web": "npm run dev --workspace watchloom-web",
+    "dev:mobile": "npm run start --workspace watchloom-mobile",
+    "build": "npm run build --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present"
+  },
+  "engines": {
+    "node": ">=20.19.4"
+  },
+  "author": "Plamen Stanchev",
+  "license": "ISC"
+}
