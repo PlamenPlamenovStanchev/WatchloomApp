@@ -44,7 +44,7 @@ This folder contains the Next.js web application. It includes:
 - Use loading, empty and error states for data-driven pages.
 
 ## Database Guidelines
-
+- Neon MCP database access rules: Connect Neon MCP only to a database project named `WatchloomDB` in my Neon account
 - Use Drizzle schema definitions and Drizzle Kit migrations.
 - Commit generated migration SQL files.
 - Add indexes for slugs, search fields, foreign keys and pagination-heavy queries.
