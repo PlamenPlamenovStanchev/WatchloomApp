@@ -1,6 +1,44 @@
+import { z } from "zod";
+
 export type MediaType = "movie" | "series";
 
 export type SeriesStatus = "ongoing" | "ended" | "cancelled" | "unknown";
+
+const optionalTrimmedStringSchema = z.preprocess(
+  (value) => {
+    if (typeof value !== "string") {
+      return value;
+    }
+
+    const trimmed = value.trim();
+
+    return trimmed.length > 0 ? trimmed : undefined;
+  },
+  z.string().optional(),
+);
+
+const optionalCoercedPageSchema = z.preprocess(
+  (value) => (value === "" || value === null ? undefined : value),
+  z.coerce.number().int().min(1).optional(),
+);
+
+const optionalCoercedPageSizeSchema = z.preprocess(
+  (value) => (value === "" || value === null ? undefined : value),
+  z.coerce.number().int().min(1).max(100).optional(),
+);
+
+export const paginationQuerySchema = z.object({
+  page: optionalCoercedPageSchema,
+  pageSize: optionalCoercedPageSizeSchema,
+});
+
+export const catalogSearchQuerySchema = paginationQuerySchema.extend({
+  q: optionalTrimmedStringSchema,
+  genre: optionalTrimmedStringSchema,
+});
+
+export type PaginationQueryInput = z.infer<typeof paginationQuerySchema>;
+export type CatalogSearchQueryInput = z.infer<typeof catalogSearchQuerySchema>;
 
 export interface GenreDto {
   id: number;
