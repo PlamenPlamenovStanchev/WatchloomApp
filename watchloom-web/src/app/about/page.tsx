@@ -32,6 +32,16 @@ export default function AboutPage() {
         </section>
 
         <section className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
+          <h2 className="text-lg font-semibold">Our Dedication</h2>
+          <p className="mt-3 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
+            We are deeply committed to elevating quality cinema and television. We believe that great storytelling deserves a platform that respects the art of filmmaking, helping you discover meaningful, thought-provoking, and entertaining content from around the world.
+          </p>
+          <p className="mt-3 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
+            Alongside our content, we prioritize an immersive, seamless user experience. Whether you are searching for your next favorite show or organizing your watchlist, our goal is to provide a clean, distraction-free environment that lets the movies and series take center stage.
+          </p>
+        </section>
+
+        <section className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
           <h2 className="text-lg font-semibold">Built for web and mobile</h2>
           <p className="mt-3 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
             The project is a Node.js monorepo with a Next.js web app, an Expo React Native mobile
