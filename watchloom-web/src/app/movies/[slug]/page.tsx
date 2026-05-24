@@ -9,16 +9,6 @@ type MovieDetailPageProps = {
   }>;
 };
 
-type OptionalMovieMetadata = {
-  description?: string | null;
-  releaseYear?: number | string | null;
-  duration?: number | string | null;
-  director?: string | null;
-  writer?: string | string[] | null;
-  writers?: string | string[] | null;
-  cast?: string | string[] | null;
-};
-
 const getYear = (releaseDate?: string | Date | null, releaseYear?: number | string | null) => {
   if (releaseYear) {
     return String(releaseYear);
@@ -67,15 +57,14 @@ export default async function MovieDetailPage({ params }: MovieDetailPageProps) 
     notFound();
   }
 
-  const metadata = movie as typeof movie & OptionalMovieMetadata;
-  const description = metadata.description ?? movie.overview;
-  const releaseYear = getYear(movie.releaseDate, metadata.releaseYear);
+  const description = movie.overview;
+  const releaseYear = getYear(movie.releaseDate, movie.releaseYear);
   const detailRows = [
     { label: "Release year", value: releaseYear },
-    { label: "Duration", value: formatDuration(metadata.duration) },
-    { label: "Director", value: metadata.director },
-    { label: "Writer", value: formatTextList(metadata.writer ?? metadata.writers) },
-    { label: "Cast", value: formatTextList(metadata.cast) },
+    { label: "Duration", value: formatDuration(movie.durationMinutes) },
+    { label: "Director", value: movie.director },
+    { label: "Writer", value: formatTextList(movie.writer) },
+    { label: "Cast", value: formatTextList(movie.cast) },
   ];
 
   return (

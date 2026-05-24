@@ -8,6 +8,13 @@
       "when": 1779454690959,
       "tag": "0000_real_lockjaw",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1779622688471,
+      "tag": "0001_bizarre_mandroid",
+      "breakpoints": true
     }
   ]
 }
