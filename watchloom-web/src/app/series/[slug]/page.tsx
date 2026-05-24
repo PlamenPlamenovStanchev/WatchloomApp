@@ -9,16 +9,6 @@ type SeriesDetailPageProps = {
   }>;
 };
 
-type OptionalSeriesMetadata = {
-  description?: string | null;
-  releaseYear?: number | string | null;
-  status?: string | null;
-  network?: string | null;
-  platform?: string | null;
-  creator?: string | string[] | null;
-  cast?: string | string[] | null;
-};
-
 const getYear = (firstAirDate?: string | Date | null, releaseYear?: number | string | null) => {
   if (releaseYear) {
     return String(releaseYear);
@@ -60,16 +50,15 @@ export default async function SeriesDetailPage({ params }: SeriesDetailPageProps
   }
 
   const seasons = await getSeriesSeasons(show.id);
-  const metadata = show as typeof show & OptionalSeriesMetadata;
-  const description = metadata.description ?? show.overview;
-  const releaseYear = getYear(show.firstAirDate, metadata.releaseYear);
-  const platform = metadata.network ?? metadata.platform ?? null;
+  const description = show.overview;
+  const releaseYear = getYear(show.firstAirDate, show.releaseYear);
+  const platform = show.network;
   const detailRows = [
     { label: "Release year", value: releaseYear },
-    { label: "Status", value: metadata.status },
+    { label: "Status", value: show.status },
     { label: "Network / platform", value: platform },
-    { label: "Creator", value: formatTextList(metadata.creator) },
-    { label: "Cast", value: formatTextList(metadata.cast) },
+    { label: "Creator", value: formatTextList(show.creator) },
+    { label: "Cast", value: formatTextList(show.cast) },
   ];
 
   return (

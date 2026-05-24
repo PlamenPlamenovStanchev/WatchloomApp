@@ -15,6 +15,13 @@
       "when": 1779622688471,
       "tag": "0001_bizarre_mandroid",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1779623211076,
+      "tag": "0002_neat_gamma_corps",
+      "breakpoints": true
     }
   ]
 }
