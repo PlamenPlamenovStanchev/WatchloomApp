@@ -43,13 +43,34 @@ export const users = pgTable(
     id: serial("id").primaryKey(),
     name: text("name").notNull(),
     email: text("email").notNull(),
-    passwordHash: text("password_hash").notNull(),
+    passwordHash: text("password_hash"),
     role: text("role").notNull().default("user"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => ({
     emailIdx: uniqueIndex("users_email_idx").on(table.email),
+  }),
+);
+
+export const oauthAccounts = pgTable(
+  "oauth_accounts",
+  {
+    id: serial("id").primaryKey(),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    provider: text("provider").notNull(),
+    providerAccountId: text("provider_account_id").notNull(),
+    providerEmail: text("provider_email"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    userIdx: index("oauth_accounts_user_id_idx").on(table.userId),
+    providerProviderAccountIdIdx: uniqueIndex(
+      "oauth_accounts_provider_provider_account_id_idx",
+    ).on(table.provider, table.providerAccountId),
   }),
 );
 
