@@ -1,17 +1,25 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 
-const ACCESS_TOKEN_EXPIRES_IN_SECONDS = 60 * 60;
+const ACCESS_TOKEN_EXPIRES_IN_SECONDS = 60 * 60 * 24;
 const JWT_ALGORITHM = "HS256";
 const JWT_TYPE = "JWT";
 
 type JsonPrimitive = string | number | boolean | null;
 type JsonValue = JsonPrimitive | JsonValue[] | { [key: string]: JsonValue };
+type UserRole = "user" | "editor" | "admin";
 
-export type AccessTokenPayload = Record<string, JsonValue | undefined>;
+export type AccessTokenPayload = {
+  userId: number;
+  email: string;
+  role: UserRole;
+};
+
 export type VerifiedAccessTokenPayload = AccessTokenPayload & {
   exp: number;
   iat: number;
 };
+
+type JwtBody = Record<string, JsonValue | undefined>;
 
 const getJwtSecret = () => {
   const secret = process.env.JWT_SECRET;
@@ -43,13 +51,17 @@ const parseJsonSegment = (segment: string) => {
   }
 };
 
-export const signAccessToken = (payload: AccessTokenPayload) => {
+const isUserRole = (role: unknown): role is UserRole => {
+  return role === "user" || role === "editor" || role === "admin";
+};
+
+export const signAccessToken = (payload: AccessTokenPayload): string => {
   const now = Math.floor(Date.now() / 1000);
   const header = {
     alg: JWT_ALGORITHM,
     typ: JWT_TYPE,
   };
-  const body = {
+  const body: JwtBody = {
     ...payload,
     iat: now,
     exp: now + ACCESS_TOKEN_EXPIRES_IN_SECONDS,
@@ -92,20 +104,31 @@ export const verifyAccessToken = (token: string): VerifiedAccessTokenPayload => 
 
   const payload = parseJsonSegment(encodedBody);
 
+  if (typeof payload !== "object" || payload === null) {
+    throw new Error("Invalid access token.");
+  }
+
+  const body = payload as JwtBody;
+
   if (
-    typeof payload !== "object" ||
-    payload === null ||
-    !("exp" in payload) ||
-    !("iat" in payload) ||
-    typeof payload.exp !== "number" ||
-    typeof payload.iat !== "number"
+    typeof body.exp !== "number" ||
+    typeof body.iat !== "number" ||
+    typeof body.userId !== "number" ||
+    typeof body.email !== "string" ||
+    !isUserRole(body.role)
   ) {
     throw new Error("Invalid access token.");
   }
 
-  if (payload.exp < Math.floor(Date.now() / 1000)) {
+  if (body.exp < Math.floor(Date.now() / 1000)) {
     throw new Error("Access token has expired.");
   }
 
-  return payload as VerifiedAccessTokenPayload;
+  return {
+    userId: body.userId,
+    email: body.email,
+    role: body.role,
+    exp: body.exp,
+    iat: body.iat,
+  };
 };

@@ -11,29 +11,32 @@ type UserRecord = typeof users.$inferSelect;
 
 export type SafeUser = {
   id: number;
-  name: string;
   email: string;
+  username: string;
   role: UserRole;
+  isActive: boolean;
   createdAt: Date;
-  updatedAt: Date;
 };
 
-export type RegisterUserInput = {
+export type RegisterInput = {
   email: string;
-  password: string;
-  username?: string;
-  name?: string;
-};
-
-export type LoginUserInput = {
-  email: string;
+  username: string;
   password: string;
 };
 
-export type LoginResult = {
+export type LoginInput = {
+  email: string;
+  password: string;
+};
+
+export type AuthResult = {
   user: SafeUser;
   accessToken: string;
 };
+
+export type RegisterUserInput = RegisterInput;
+export type LoginUserInput = LoginInput;
+export type LoginResult = AuthResult;
 
 export class AuthServiceError extends Error {
   constructor(
@@ -57,11 +60,11 @@ const normalizeUserRole = (role: string): UserRole => {
 
 const toSafeUser = (user: UserRecord): SafeUser => ({
   id: user.id,
-  name: user.name,
   email: user.email,
+  username: user.name,
   role: normalizeUserRole(user.role),
+  isActive: "isActive" in user && typeof user.isActive === "boolean" ? user.isActive : true,
   createdAt: user.createdAt,
-  updatedAt: user.updatedAt,
 });
 
 const getUserRecordByEmail = async (email: string) => {
@@ -70,6 +73,12 @@ const getUserRecordByEmail = async (email: string) => {
     .from(users)
     .where(eq(users.email, normalizeEmail(email)))
     .limit(1);
+
+  return user ?? null;
+};
+
+const getUserRecordById = async (userId: number) => {
+  const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
 
   return user ?? null;
 };
@@ -89,11 +98,17 @@ export const getUserByEmail = async (email: string) => {
   return user ? toSafeUser(user) : null;
 };
 
-export const registerUser = async (input: RegisterUserInput) => {
-  const email = normalizeEmail(input.email);
-  const name = (input.username ?? input.name)?.trim();
+export const getSafeUserById = async (userId: number) => {
+  const user = await getUserRecordById(userId);
 
-  if (!email || !name || !input.password) {
+  return user ? toSafeUser(user) : null;
+};
+
+export const registerUser = async (input: RegisterInput): Promise<SafeUser> => {
+  const email = normalizeEmail(input.email);
+  const username = input.username.trim();
+
+  if (!email || !username || !input.password) {
     throw new AuthServiceError("Invalid registration input.", "INVALID_INPUT");
   }
 
@@ -109,7 +124,7 @@ export const registerUser = async (input: RegisterUserInput) => {
     const [createdUser] = await db
       .insert(users)
       .values({
-        name,
+        name: username,
         email,
         passwordHash,
         role: "user",
@@ -126,10 +141,10 @@ export const registerUser = async (input: RegisterUserInput) => {
   }
 };
 
-export const loginUser = async (input: LoginUserInput): Promise<LoginResult> => {
+export const loginUser = async (input: LoginInput): Promise<AuthResult> => {
   const user = await getUserRecordByEmail(input.email);
   const invalidCredentialsError = new AuthServiceError(
-    "Invalid email or password.",
+    "Invalid email or password",
     "INVALID_CREDENTIALS",
   );
 
@@ -144,8 +159,12 @@ export const loginUser = async (input: LoginUserInput): Promise<LoginResult> => 
   }
 
   const safeUser = toSafeUser(user);
+
+  if (!safeUser.isActive) {
+    throw invalidCredentialsError;
+  }
+
   const accessToken = signAccessToken({
-    sub: String(safeUser.id),
     userId: safeUser.id,
     email: safeUser.email,
     role: safeUser.role,
