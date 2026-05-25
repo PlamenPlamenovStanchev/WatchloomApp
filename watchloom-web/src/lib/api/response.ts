@@ -15,6 +15,16 @@ export const successResponse = <T>(data: T, init?: ResponseInit) => {
   );
 };
 
+export const messageResponse = (message: string, init?: ResponseInit) => {
+  return NextResponse.json(
+    {
+      success: true,
+      message,
+    },
+    init,
+  );
+};
+
 export const errorResponse = (message: string, status = 500) => {
   return NextResponse.json(
     {

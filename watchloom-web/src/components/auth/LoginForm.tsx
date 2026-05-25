@@ -156,6 +156,15 @@ export function LoginForm({ registered = false }: LoginFormProps) {
       </button>
 
       <p className="text-center text-sm text-zinc-600 dark:text-zinc-400">
+        <Link
+          href="/forgot-password"
+          className="font-medium text-zinc-950 underline-offset-4 hover:underline dark:text-zinc-50"
+        >
+          Forgot your password?
+        </Link>
+      </p>
+
+      <p className="text-center text-sm text-zinc-600 dark:text-zinc-400">
         New to Watchloom?{" "}
         <Link href="/register" className="font-medium text-zinc-950 underline-offset-4 hover:underline dark:text-zinc-50">
           Create an account
