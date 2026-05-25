@@ -7,7 +7,8 @@ export default function ReviewsPage() {
         </p>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight">Reviews</h1>
         <p className="mt-3 max-w-2xl text-sm leading-6 text-zinc-600 dark:text-zinc-400">
-          Your movie and series reviews will live here.
+          Your movie and series reviews will live here. Coming next: review history, rating edits,
+          and public review controls.
         </p>
       </section>
     </main>

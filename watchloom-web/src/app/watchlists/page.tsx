@@ -7,7 +7,8 @@ export default function WatchlistsPage() {
         </p>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight">Watchlists</h1>
         <p className="mt-3 max-w-2xl text-sm leading-6 text-zinc-600 dark:text-zinc-400">
-          User watchlist management will live here.
+          User watchlist management will live here. Coming next: creating lists, saving movies and
+          series, and tracking planned watches.
         </p>
       </section>
     </main>
