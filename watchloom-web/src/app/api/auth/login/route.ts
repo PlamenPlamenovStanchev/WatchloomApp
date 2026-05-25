@@ -1,14 +1,21 @@
-import { apiSuccess } from "@/lib/api";
+import { successResponse, validationErrorResponse } from "@/lib/api/response";
+import { loginSchema } from "@/lib/validations/auth";
 import { loginUser } from "@/services/auth.service";
 
-import { authErrorResponse, parseLoginInput, readJsonObject, setAuthCookie } from "../_utils";
+import { authErrorResponse, readJsonObject, setAuthCookie } from "../_utils";
 
 export async function POST(request: Request) {
   try {
     const body = await readJsonObject(request);
-    const input = parseLoginInput(body);
+    const parsedInput = loginSchema.safeParse(body);
+
+    if (!parsedInput.success) {
+      return validationErrorResponse(parsedInput.error);
+    }
+
+    const input = parsedInput.data;
     const authResult = await loginUser(input);
-    const response = apiSuccess(authResult);
+    const response = successResponse(authResult);
 
     setAuthCookie(response, authResult.accessToken);
 

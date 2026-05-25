@@ -1,15 +1,12 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
-import { apiError } from "@/lib/api";
-import type { LoginInput, RegisterInput } from "@/services/auth.service";
+import { errorResponse } from "@/lib/api/response";
 import { AuthServiceError } from "@/services/auth.service";
 
 export const AUTH_COOKIE_NAME = "watchloom_access_token";
 
 const ACCESS_TOKEN_MAX_AGE_SECONDS = 60 * 60 * 24;
-const MIN_PASSWORD_LENGTH = 8;
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 type JsonObject = Record<string, unknown>;
 
@@ -31,70 +28,20 @@ export const readJsonObject = async (request: Request): Promise<JsonObject> => {
   }
 };
 
-const getTrimmedStringField = (body: JsonObject, field: string) => {
-  const value = body[field];
-
-  return typeof value === "string" ? value.trim() : "";
-};
-
-const getStringField = (body: JsonObject, field: string) => {
-  const value = body[field];
-
-  return typeof value === "string" ? value : "";
-};
-
-export const parseRegisterInput = (body: JsonObject): RegisterInput => {
-  const email = getTrimmedStringField(body, "email").toLowerCase();
-  const username = getTrimmedStringField(body, "username");
-  const password = getStringField(body, "password");
-
-  if (!EMAIL_PATTERN.test(email)) {
-    throw new AuthServiceError("A valid email is required.", "INVALID_INPUT");
-  }
-
-  if (!username) {
-    throw new AuthServiceError("Username is required.", "INVALID_INPUT");
-  }
-
-  if (password.length < MIN_PASSWORD_LENGTH) {
-    throw new AuthServiceError("Password must be at least 8 characters.", "INVALID_INPUT");
-  }
-
-  return {
-    email,
-    username,
-    password,
-  };
-};
-
-export const parseLoginInput = (body: JsonObject): LoginInput => {
-  const email = getTrimmedStringField(body, "email").toLowerCase();
-  const password = getStringField(body, "password");
-
-  if (!EMAIL_PATTERN.test(email) || !password) {
-    throw new AuthServiceError("Invalid email or password", "INVALID_CREDENTIALS");
-  }
-
-  return {
-    email,
-    password,
-  };
-};
-
 export const authErrorResponse = (error: unknown) => {
   if (error instanceof AuthServiceError) {
     if (error.code === "EMAIL_IN_USE") {
-      return apiError(error.message, { status: 409 });
+      return errorResponse(error.message, 409);
     }
 
     if (error.code === "INVALID_CREDENTIALS") {
-      return apiError("Invalid email or password", { status: 401 });
+      return errorResponse("Invalid email or password", 401);
     }
 
-    return apiError(error.message, { status: 400 });
+    return errorResponse(error.message, 400);
   }
 
-  return apiError("Internal server error.");
+  return errorResponse("Internal server error.");
 };
 
 export const setAuthCookie = (response: NextResponse, accessToken: string) => {

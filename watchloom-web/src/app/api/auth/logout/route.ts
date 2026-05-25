@@ -1,9 +1,9 @@
-import { apiSuccess } from "@/lib/api";
+import { successResponse } from "@/lib/api/response";
 
 import { clearAuthCookie } from "../_utils";
 
 export async function POST() {
-  const response = apiSuccess({ loggedOut: true });
+  const response = successResponse({ loggedOut: true });
 
   clearAuthCookie(response);
 

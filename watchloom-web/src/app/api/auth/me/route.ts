@@ -1,4 +1,4 @@
-import { apiError, apiSuccess } from "@/lib/api";
+import { errorResponse, successResponse } from "@/lib/api/response";
 import { verifyAccessToken } from "@/lib/auth/jwt";
 import { getSafeUserById } from "@/services/auth.service";
 
@@ -8,7 +8,7 @@ export async function GET(request: Request) {
   const token = getBearerToken(request) ?? (await getCookieToken());
 
   if (!token) {
-    return apiError("Unauthorized", { status: 401 });
+    return errorResponse("Unauthorized", 401);
   }
 
   try {
@@ -16,11 +16,11 @@ export async function GET(request: Request) {
     const user = await getSafeUserById(payload.userId);
 
     if (!user || !user.isActive) {
-      return apiError("Unauthorized", { status: 401 });
+      return errorResponse("Unauthorized", 401);
     }
 
-    return apiSuccess({ user });
+    return successResponse({ user });
   } catch {
-    return apiError("Unauthorized", { status: 401 });
+    return errorResponse("Unauthorized", 401);
   }
 }
