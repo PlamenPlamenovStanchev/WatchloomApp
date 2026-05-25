@@ -1,4 +1,7 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
+import { AUTH_COOKIE_NAME } from "@/lib/auth/cookies";
+import { LogoutButton } from "./LogoutButton";
 
 const primaryLinks = [
   { href: "/", label: "Home" },
@@ -13,7 +16,11 @@ const authLinks = [
   { href: "/register", label: "Register" },
 ];
 
-export function PublicHeader() {
+export async function PublicHeader() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get(AUTH_COOKIE_NAME)?.value;
+  const isAuthenticated = !!token;
+
   return (
     <header className="sticky top-0 z-50 border-b border-zinc-200 bg-white/95 backdrop-blur dark:border-zinc-800 dark:bg-black/95">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6 lg:px-8">
@@ -25,19 +32,31 @@ export function PublicHeader() {
             Watchloom
           </Link>
           <nav className="hidden items-center gap-2 sm:flex" aria-label="Account navigation">
-            {authLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={
-                  link.href === "/register"
-                    ? "rounded-md bg-zinc-950 px-3 py-2 text-sm font-medium text-white transition hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-950 dark:hover:bg-zinc-200"
-                    : "rounded-md px-3 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-900 dark:hover:text-zinc-50"
-                }
-              >
-                {link.label}
-              </Link>
-            ))}
+            {isAuthenticated ? (
+              <>
+                <Link
+                  href="/dashboard"
+                  className="rounded-md px-3 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-900 dark:hover:text-zinc-50"
+                >
+                  Dashboard
+                </Link>
+                <LogoutButton />
+              </>
+            ) : (
+              authLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={
+                    link.href === "/register"
+                      ? "rounded-md bg-zinc-950 px-3 py-2 text-sm font-medium text-white transition hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-950 dark:hover:bg-zinc-200"
+                      : "rounded-md px-3 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-900 dark:hover:text-zinc-50"
+                  }
+                >
+                  {link.label}
+                </Link>
+              ))
+            )}
           </nav>
         </div>
 
@@ -53,15 +72,27 @@ export function PublicHeader() {
           ))}
           <span className="h-5 w-px bg-zinc-200 dark:bg-zinc-800 sm:hidden" aria-hidden="true" />
           <span className="flex gap-2 sm:hidden">
-            {authLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="rounded-md px-3 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-900 dark:hover:text-zinc-50"
-              >
-                {link.label}
-              </Link>
-            ))}
+            {isAuthenticated ? (
+              <>
+                <Link
+                  href="/dashboard"
+                  className="rounded-md px-3 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-900 dark:hover:text-zinc-50"
+                >
+                  Dashboard
+                </Link>
+                <LogoutButton />
+              </>
+            ) : (
+              authLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="rounded-md px-3 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-900 dark:hover:text-zinc-50"
+                >
+                  {link.label}
+                </Link>
+              ))
+            )}
           </span>
         </nav>
       </div>
