@@ -1,12 +1,13 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
+import {
+  AUTH_COOKIE_NAME,
+  ACCESS_TOKEN_MAX_AGE_SECONDS,
+  getAuthCookieOptions,
+} from "@/lib/auth/cookies";
 import { errorResponse } from "@/lib/api/response";
 import { AuthServiceError } from "@/services/auth.service";
-
-export const AUTH_COOKIE_NAME = "watchloom_access_token";
-
-const ACCESS_TOKEN_MAX_AGE_SECONDS = 60 * 60 * 24;
 
 type JsonObject = Record<string, unknown>;
 
@@ -46,24 +47,18 @@ export const authErrorResponse = (error: unknown) => {
 
 export const setAuthCookie = (response: NextResponse, accessToken: string) => {
   response.cookies.set({
+    ...getAuthCookieOptions(),
     name: AUTH_COOKIE_NAME,
     value: accessToken,
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
     maxAge: ACCESS_TOKEN_MAX_AGE_SECONDS,
   });
 };
 
 export const clearAuthCookie = (response: NextResponse) => {
   response.cookies.set({
+    ...getAuthCookieOptions(),
     name: AUTH_COOKIE_NAME,
     value: "",
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
     maxAge: 0,
   });
 };

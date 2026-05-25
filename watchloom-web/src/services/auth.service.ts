@@ -164,7 +164,7 @@ export const loginUser = async (input: LoginInput): Promise<AuthResult> => {
     throw invalidCredentialsError;
   }
 
-  const accessToken = signAccessToken({
+  const accessToken = await signAccessToken({
     userId: safeUser.id,
     email: safeUser.email,
     role: safeUser.role,

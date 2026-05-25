@@ -1,5 +1,3 @@
-import { createHmac, timingSafeEqual } from "node:crypto";
-
 const ACCESS_TOKEN_EXPIRES_IN_SECONDS = 60 * 60 * 24;
 const JWT_ALGORITHM = "HS256";
 const JWT_TYPE = "JWT";
@@ -31,16 +29,62 @@ const getJwtSecret = () => {
   return secret;
 };
 
+const textEncoder = new TextEncoder();
+
+const base64UrlEncodeBytes = (bytes: Uint8Array) => {
+  let binary = "";
+
+  for (const byte of bytes) {
+    binary += String.fromCharCode(byte);
+  }
+
+  return btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
+};
+
 const base64UrlEncode = (value: string) => {
-  return Buffer.from(value).toString("base64url");
+  return base64UrlEncodeBytes(textEncoder.encode(value));
 };
 
 const base64UrlDecode = (value: string) => {
-  return Buffer.from(value, "base64url").toString("utf8");
+  const paddedValue = value.padEnd(value.length + ((4 - (value.length % 4)) % 4), "=");
+  const base64 = paddedValue.replaceAll("-", "+").replaceAll("_", "/");
+  const binary = atob(base64);
+  const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
+
+  return new TextDecoder().decode(bytes);
 };
 
-const sign = (value: string) => {
-  return createHmac("sha256", getJwtSecret()).update(value).digest("base64url");
+const getSigningKey = async () => {
+  return crypto.subtle.importKey(
+    "raw",
+    textEncoder.encode(getJwtSecret()),
+    {
+      name: "HMAC",
+      hash: "SHA-256",
+    },
+    false,
+    ["sign"],
+  );
+};
+
+const sign = async (value: string) => {
+  const signature = await crypto.subtle.sign("HMAC", await getSigningKey(), textEncoder.encode(value));
+
+  return base64UrlEncodeBytes(new Uint8Array(signature));
+};
+
+const constantTimeEqual = (left: string, right: string) => {
+  if (left.length !== right.length) {
+    return false;
+  }
+
+  let difference = 0;
+
+  for (let index = 0; index < left.length; index += 1) {
+    difference |= left.charCodeAt(index) ^ right.charCodeAt(index);
+  }
+
+  return difference === 0;
 };
 
 const parseJsonSegment = (segment: string) => {
@@ -55,7 +99,7 @@ const isUserRole = (role: unknown): role is UserRole => {
   return role === "user" || role === "editor" || role === "admin";
 };
 
-export const signAccessToken = (payload: AccessTokenPayload): string => {
+export const signAccessToken = async (payload: AccessTokenPayload): Promise<string> => {
   const now = Math.floor(Date.now() / 1000);
   const header = {
     alg: JWT_ALGORITHM,
@@ -70,24 +114,19 @@ export const signAccessToken = (payload: AccessTokenPayload): string => {
   const encodedBody = base64UrlEncode(JSON.stringify(body));
   const signatureBase = `${encodedHeader}.${encodedBody}`;
 
-  return `${signatureBase}.${sign(signatureBase)}`;
+  return `${signatureBase}.${await sign(signatureBase)}`;
 };
 
-export const verifyAccessToken = (token: string): VerifiedAccessTokenPayload => {
+export const verifyAccessToken = async (token: string): Promise<VerifiedAccessTokenPayload> => {
   const [encodedHeader, encodedBody, signature, ...extraSegments] = token.split(".");
 
   if (!encodedHeader || !encodedBody || !signature || extraSegments.length > 0) {
     throw new Error("Invalid access token.");
   }
 
-  const expectedSignature = sign(`${encodedHeader}.${encodedBody}`);
-  const signatureBuffer = Buffer.from(signature);
-  const expectedSignatureBuffer = Buffer.from(expectedSignature);
+  const expectedSignature = await sign(`${encodedHeader}.${encodedBody}`);
 
-  if (
-    signatureBuffer.length !== expectedSignatureBuffer.length ||
-    !timingSafeEqual(signatureBuffer, expectedSignatureBuffer)
-  ) {
+  if (!constantTimeEqual(signature, expectedSignature)) {
     throw new Error("Invalid access token.");
   }
 

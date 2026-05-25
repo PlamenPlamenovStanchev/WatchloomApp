@@ -12,7 +12,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const payload = verifyAccessToken(token);
+    const payload = await verifyAccessToken(token);
     const user = await getSafeUserById(payload.userId);
 
     if (!user || !user.isActive) {
