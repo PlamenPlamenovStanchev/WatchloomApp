@@ -148,7 +148,7 @@ export const loginUser = async (input: LoginInput): Promise<AuthResult> => {
     "INVALID_CREDENTIALS",
   );
 
-  if (!user) {
+  if (!user || !user.passwordHash) {
     throw invalidCredentialsError;
   }
 

@@ -4,6 +4,7 @@ import { LoginForm } from "@/components/auth/LoginForm";
 type LoginPageProps = {
   searchParams?: Promise<{
     registered?: string | string[];
+    error?: string | string[];
   }>;
 };
 
@@ -18,6 +19,7 @@ const getSearchParam = (value?: string | string[]) => {
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const params = searchParams ? await searchParams : {};
   const registered = getSearchParam(params.registered) === "1";
+  const error = getSearchParam(params.error);
 
   return (
     <main className="flex flex-1 items-center justify-center bg-zinc-50 px-4 py-10 text-zinc-950 dark:bg-black dark:text-zinc-50 sm:px-6 lg:px-8">
@@ -25,7 +27,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         title="Log in"
         subtitle="Access your watchlists, reviews, favourites, and account features."
       >
-        <LoginForm registered={registered} />
+        <LoginForm registered={registered} error={error} />
       </AuthCard>
     </main>
   );
