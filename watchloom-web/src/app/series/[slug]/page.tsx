@@ -1,11 +1,19 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { addSeriesToWatchlist } from "@/app/watchlist-actions";
+import { AddToWatchlistForm } from "@/components/watchlists/AddToWatchlistForm";
+import { getCurrentUser } from "@/lib/auth/current-user";
 import { getSeriesBySlug, getSeriesSeasons } from "@/services/series.service";
+import { getUserWatchlists } from "@/services/watchlist.service";
 
 type SeriesDetailPageProps = {
   params: Promise<{
     slug: string;
+  }>;
+  searchParams: Promise<{
+    watchlistError?: string;
+    watchlistSuccess?: string;
   }>;
 };
 
@@ -41,15 +49,20 @@ const DetailRow = ({ label, value }: { label: string; value?: string | null }) =
   </div>
 );
 
-export default async function SeriesDetailPage({ params }: SeriesDetailPageProps) {
+export default async function SeriesDetailPage({ params, searchParams }: SeriesDetailPageProps) {
   const { slug } = await params;
-  const show = await getSeriesBySlug(slug);
+  const [show, user] = await Promise.all([getSeriesBySlug(slug), getCurrentUser()]);
 
   if (!show) {
     notFound();
   }
 
-  const seasons = await getSeriesSeasons(show.id);
+  const [seasons, watchlists, messages] = await Promise.all([
+    getSeriesSeasons(show.id),
+    user ? getUserWatchlists(user.id) : [],
+    searchParams,
+  ]);
+  const addAction = addSeriesToWatchlist.bind(null, show.id, `/series/${show.slug}`);
   const description = show.overview;
   const releaseYear = getYear(show.firstAirDate, show.releaseYear);
   const platform = show.network;
@@ -120,6 +133,27 @@ export default async function SeriesDetailPage({ params }: SeriesDetailPageProps
               ))}
             </dl>
           </section>
+
+          {user ? (
+            <AddToWatchlistForm
+              action={addAction}
+              watchlists={watchlists}
+              error={messages.watchlistError}
+              success={messages.watchlistSuccess}
+            />
+          ) : (
+            <section className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+              <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                Log in to add this title to your watchlist
+              </p>
+              <Link
+                href={`/login?next=${encodeURIComponent(`/series/${show.slug}`)}`}
+                className="mt-3 inline-flex text-sm font-medium text-zinc-950 hover:underline dark:text-zinc-50"
+              >
+                Log in
+              </Link>
+            </section>
+          )}
 
           <section aria-labelledby="series-seasons">
             <h2 id="series-seasons" className="text-xl font-semibold">

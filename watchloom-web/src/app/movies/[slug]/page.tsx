@@ -1,11 +1,19 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { addMovieToWatchlist } from "@/app/watchlist-actions";
+import { AddToWatchlistForm } from "@/components/watchlists/AddToWatchlistForm";
+import { getCurrentUser } from "@/lib/auth/current-user";
 import { getMovieBySlug } from "@/services/movie.service";
+import { getUserWatchlists } from "@/services/watchlist.service";
 
 type MovieDetailPageProps = {
   params: Promise<{
     slug: string;
+  }>;
+  searchParams: Promise<{
+    watchlistError?: string;
+    watchlistSuccess?: string;
   }>;
 };
 
@@ -49,14 +57,19 @@ const DetailRow = ({ label, value }: { label: string; value?: string | null }) =
   </div>
 );
 
-export default async function MovieDetailPage({ params }: MovieDetailPageProps) {
+export default async function MovieDetailPage({ params, searchParams }: MovieDetailPageProps) {
   const { slug } = await params;
-  const movie = await getMovieBySlug(slug);
+  const [movie, user] = await Promise.all([getMovieBySlug(slug), getCurrentUser()]);
 
   if (!movie) {
     notFound();
   }
 
+  const [watchlists, messages] = await Promise.all([
+    user ? getUserWatchlists(user.id) : [],
+    searchParams,
+  ]);
+  const addAction = addMovieToWatchlist.bind(null, movie.id, `/movies/${movie.slug}`);
   const description = movie.overview;
   const releaseYear = getYear(movie.releaseDate, movie.releaseYear);
   const detailRows = [
@@ -126,6 +139,27 @@ export default async function MovieDetailPage({ params }: MovieDetailPageProps) 
               ))}
             </dl>
           </section>
+
+          {user ? (
+            <AddToWatchlistForm
+              action={addAction}
+              watchlists={watchlists}
+              error={messages.watchlistError}
+              success={messages.watchlistSuccess}
+            />
+          ) : (
+            <section className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+              <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                Log in to add this title to your watchlist
+              </p>
+              <Link
+                href={`/login?next=${encodeURIComponent(`/movies/${movie.slug}`)}`}
+                className="mt-3 inline-flex text-sm font-medium text-zinc-950 hover:underline dark:text-zinc-50"
+              >
+                Log in
+              </Link>
+            </section>
+          )}
         </div>
       </article>
     </main>
