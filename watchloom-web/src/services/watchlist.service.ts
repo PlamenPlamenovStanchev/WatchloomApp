@@ -219,7 +219,7 @@ const getDuplicateWatchlistItem = async (
 };
 
 export const getUserWatchlists = async (userId: number): Promise<WatchlistSummary[]> => {
-  const rows = await db
+  let rows = await db
     .select({
       watchlist: watchlists,
       itemCount: count(watchlistItems.id),
@@ -229,6 +229,19 @@ export const getUserWatchlists = async (userId: number): Promise<WatchlistSummar
     .where(eq(watchlists.userId, userId))
     .groupBy(watchlists.id)
     .orderBy(desc(watchlists.updatedAt), desc(watchlists.createdAt));
+
+  if (rows.length === 0) {
+    const [newWatchlist] = await db
+      .insert(watchlists)
+      .values({
+        userId,
+        name: "My Watchlist",
+        description: "Default watchlist.",
+      })
+      .returning();
+
+    rows = [{ watchlist: newWatchlist, itemCount: 0 }];
+  }
 
   return rows.map((row) => ({
     ...row.watchlist,

@@ -8,7 +8,7 @@ export default function ContactPage() {
           </p>
           <h1 className="text-3xl font-semibold tracking-tight sm:text-5xl">Get in touch</h1>
           <p className="max-w-2xl text-base leading-7 text-zinc-700 dark:text-zinc-300">
-            Have a question, feedback, or want to request editor access to help maintain the catalog? We'd love to hear from you.
+            Have a question, feedback, or want to request editor access to help maintain the catalog? We&apos;d love to hear from you.
           </p>
         </header>
 

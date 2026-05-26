@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 
 import { db } from "@/db";
-import { users } from "@/db/schema";
+import { users, watchlists } from "@/db/schema";
 import { signAccessToken } from "@/lib/auth/jwt";
 import { hashPassword, verifyPassword } from "@/lib/auth/password";
 
@@ -130,6 +130,12 @@ export const registerUser = async (input: RegisterInput): Promise<SafeUser> => {
         role: "user",
       })
       .returning();
+
+    await db.insert(watchlists).values({
+      userId: createdUser.id,
+      name: "My Watchlist",
+      description: "Default watchlist for movies and series.",
+    });
 
     return toSafeUser(createdUser);
   } catch (error) {
