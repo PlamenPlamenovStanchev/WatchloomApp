@@ -176,6 +176,7 @@ export const episodes = pgTable(
     episodeNumber: integer("episode_number").notNull(),
     title: text("title").notNull(),
     overview: text("overview"),
+    durationMinutes: integer("duration_minutes"),
     airDate: date("air_date"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),

@@ -1,30 +1,40 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { deleteEditorSeasonAction } from "@/actions/editor-season.actions";
-import { DeleteEditorSeasonButton } from "@/components/editor/DeleteEditorSeasonButton";
-import { getEditorSeasons } from "@/services/editor-season.service";
+import { deleteEditorEpisodeAction } from "@/actions/editor-episode.actions";
+import { DeleteEditorEpisodeButton } from "@/components/editor/DeleteEditorEpisodeButton";
+import { getEditorEpisodes } from "@/services/editor-episode.service";
 
-type EditorSeasonsPageProps = {
+type EditorEpisodesPageProps = {
   params: Promise<{
     seriesId: string;
+    seasonId: string;
   }>;
 };
 
-const parseSeriesId = (value: string) => {
-  const seriesId = Number(value);
+const parsePositiveId = (value: string) => {
+  const id = Number(value);
 
-  if (!Number.isInteger(seriesId) || seriesId <= 0) {
+  if (!Number.isInteger(id) || id <= 0) {
     notFound();
   }
 
-  return seriesId;
+  return id;
 };
 
-export default async function EditorSeasonsPage({ params }: EditorSeasonsPageProps) {
-  const { seriesId: seriesIdValue } = await params;
-  const seriesId = parseSeriesId(seriesIdValue);
-  const data = await getEditorSeasons(seriesId).catch(() => null);
+const formatDate = (value: string | Date | null) => {
+  if (!value) {
+    return "N/A";
+  }
+
+  return value instanceof Date ? value.toISOString().slice(0, 10) : value;
+};
+
+export default async function EditorEpisodesPage({ params }: EditorEpisodesPageProps) {
+  const { seriesId: seriesIdValue, seasonId: seasonIdValue } = await params;
+  const seriesId = parsePositiveId(seriesIdValue);
+  const seasonId = parsePositiveId(seasonIdValue);
+  const data = await getEditorEpisodes(seriesId, seasonId).catch(() => null);
 
   if (!data) {
     notFound();
@@ -35,78 +45,73 @@ export default async function EditorSeasonsPage({ params }: EditorSeasonsPagePro
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <Link
-            href="/editor/series"
+            href={`/editor/series/${seriesId}/seasons`}
             className="text-sm font-medium text-zinc-600 transition hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-50"
           >
-            Back to series
+            Back to seasons
           </Link>
           <h2 className="mt-3 text-2xl font-semibold tracking-tight">
-            Seasons for {data.series.title}
+            Episodes for {data.series.title}
           </h2>
           <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-            Manage season records. Episode CRUD will be added later.
+            Season {data.season.seasonNumber}
           </p>
         </div>
         <Link
-          href={`/editor/series/${seriesId}/seasons/new`}
+          href={`/editor/series/${seriesId}/seasons/${seasonId}/episodes/new`}
           className="inline-flex rounded-md bg-zinc-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-950 focus:ring-offset-2 dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-zinc-200"
         >
-          New season
+          New episode
         </Link>
       </div>
 
       <section className="overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
-        {data.seasons.length === 0 ? (
+        {data.episodes.length === 0 ? (
           <p className="px-5 py-10 text-center text-sm text-zinc-600 dark:text-zinc-400">
-            No seasons found.
+            No episodes found.
           </p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[760px] text-left text-sm">
               <thead className="border-b border-zinc-200 text-xs uppercase text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
                 <tr>
-                  <th className="px-4 py-3 font-medium">Season</th>
+                  <th className="px-4 py-3 font-medium">Episode</th>
                   <th className="px-4 py-3 font-medium">Title</th>
-                  <th className="px-4 py-3 font-medium">Year</th>
-                  <th className="px-4 py-3 font-medium">Episodes</th>
+                  <th className="px-4 py-3 font-medium">Duration</th>
+                  <th className="px-4 py-3 font-medium">Air date</th>
                   <th className="px-4 py-3 font-medium">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
-                {data.seasons.map((season) => {
-                  const deleteAction = deleteEditorSeasonAction.bind(
+                {data.episodes.map((episode) => {
+                  const deleteAction = deleteEditorEpisodeAction.bind(
                     null,
                     String(seriesId),
-                    String(season.id),
+                    String(seasonId),
+                    String(episode.id),
                   );
 
                   return (
-                    <tr key={season.id}>
-                      <td className="px-4 py-3 font-medium">{season.seasonNumber}</td>
+                    <tr key={episode.id}>
+                      <td className="px-4 py-3 font-medium">{episode.episodeNumber}</td>
                       <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">
-                        {season.title || "N/A"}
+                        {episode.title}
                       </td>
                       <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">
-                        {season.releaseYear ?? "N/A"}
+                        {episode.durationMinutes ? `${episode.durationMinutes} min` : "N/A"}
                       </td>
                       <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">
-                        {season.episodeCount}
+                        {formatDate(episode.airDate)}
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex flex-wrap gap-2">
                           <Link
-                            href={`/editor/series/${seriesId}/seasons/${season.id}/edit`}
+                            href={`/editor/series/${seriesId}/seasons/${seasonId}/episodes/${episode.id}/edit`}
                             className="rounded-md border border-zinc-200 px-3 py-1.5 text-sm font-medium transition hover:bg-zinc-100 dark:border-zinc-800 dark:hover:bg-zinc-900"
                           >
                             Edit
                           </Link>
-                          <Link
-                            href={`/editor/series/${seriesId}/seasons/${season.id}/episodes`}
-                            className="rounded-md border border-zinc-200 px-3 py-1.5 text-sm font-medium transition hover:bg-zinc-100 dark:border-zinc-800 dark:hover:bg-zinc-900"
-                          >
-                            Manage episodes
-                          </Link>
-                          <DeleteEditorSeasonButton action={deleteAction} />
+                          <DeleteEditorEpisodeButton action={deleteAction} />
                         </div>
                       </td>
                     </tr>
