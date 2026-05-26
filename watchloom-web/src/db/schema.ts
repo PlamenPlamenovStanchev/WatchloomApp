@@ -415,7 +415,7 @@ export const reviews = pgTable(
     ),
     ratingCheck: check(
       "reviews_rating_check",
-      sql`${table.rating} >= 1 and ${table.rating} <= 5`,
+      sql`${table.rating} >= 1 and ${table.rating} <= 6`,
     ),
     mediaReferenceCheck: check(
       "reviews_media_reference_check",

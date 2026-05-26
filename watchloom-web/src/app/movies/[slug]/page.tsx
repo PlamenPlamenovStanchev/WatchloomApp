@@ -1,10 +1,19 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import {
+  addFavouriteAction,
+  removeFavouriteForMediaAction,
+} from "@/actions/favourite.actions";
+import { createReviewAction, updateReviewAction } from "@/actions/review.actions";
 import { addMovieToWatchlist } from "@/app/watchlist-actions";
+import { ReviewForm } from "@/components/reviews/ReviewForm";
+import { ReviewList } from "@/components/reviews/ReviewList";
 import { AddToWatchlistForm } from "@/components/watchlists/AddToWatchlistForm";
 import { getCurrentUser } from "@/lib/auth/current-user";
+import { getUserFavouriteForMedia } from "@/services/favourite.service";
 import { getMovieBySlug } from "@/services/movie.service";
+import { getPublicReviewsForMedia, getUserReviewForMedia } from "@/services/review.service";
 import { getUserWatchlists } from "@/services/watchlist.service";
 
 type MovieDetailPageProps = {
@@ -14,6 +23,10 @@ type MovieDetailPageProps = {
   searchParams: Promise<{
     watchlistError?: string;
     watchlistSuccess?: string;
+    favouriteError?: string;
+    favouriteSuccess?: string;
+    reviewError?: string;
+    reviewSuccess?: string;
   }>;
 };
 
@@ -65,11 +78,24 @@ export default async function MovieDetailPage({ params, searchParams }: MovieDet
     notFound();
   }
 
-  const [watchlists, messages] = await Promise.all([
+  const [watchlists, favourite, publicReviews, userReview, messages] = await Promise.all([
     user ? getUserWatchlists(user.id) : [],
+    user ? getUserFavouriteForMedia(user.id, "movie", movie.id) : null,
+    getPublicReviewsForMedia("movie", movie.id),
+    user ? getUserReviewForMedia(user.id, "movie", movie.id) : null,
     searchParams,
   ]);
   const addAction = addMovieToWatchlist.bind(null, movie.id, `/movies/${movie.slug}`);
+  const addFavourite = addFavouriteAction.bind(null, "movie", movie.id, `/movies/${movie.slug}`);
+  const removeFavourite = removeFavouriteForMediaAction.bind(
+    null,
+    "movie",
+    movie.id,
+    `/movies/${movie.slug}`,
+  );
+  const reviewAction = userReview
+    ? updateReviewAction.bind(null, userReview.id, `/movies/${movie.slug}`)
+    : createReviewAction.bind(null, "movie", movie.id, `/movies/${movie.slug}`);
   const description = movie.overview;
   const releaseYear = getYear(movie.releaseDate, movie.releaseYear);
   const detailRows = [
@@ -141,17 +167,34 @@ export default async function MovieDetailPage({ params, searchParams }: MovieDet
           </section>
 
           {user ? (
-            <AddToWatchlistForm
-              action={addAction}
-              watchlists={watchlists}
-              error={messages.watchlistError}
-              success={messages.watchlistSuccess}
-            />
+            <>
+              <section className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+                <h2 className="text-xl font-semibold">Favourites</h2>
+                {messages.favouriteError ? <p className="mt-3 text-sm text-red-600">{messages.favouriteError}</p> : null}
+                {messages.favouriteSuccess ? <p className="mt-3 text-sm text-emerald-600">{messages.favouriteSuccess}</p> : null}
+                <form action={favourite ? removeFavourite : addFavourite} className="mt-4">
+                  <button type="submit" className="rounded-md bg-zinc-950 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-zinc-200">
+                    {favourite ? "Remove from Favourites" : "Add to Favourites"}
+                  </button>
+                </form>
+              </section>
+              <AddToWatchlistForm
+                action={addAction}
+                watchlists={watchlists}
+                error={messages.watchlistError}
+                success={messages.watchlistSuccess}
+              />
+              <ReviewForm
+                action={reviewAction}
+                submitLabel={userReview ? "Update review" : "Create review"}
+                defaultValues={userReview ?? undefined}
+                error={messages.reviewError}
+                success={messages.reviewSuccess}
+              />
+            </>
           ) : (
             <section className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                Log in to add this title to your watchlist
-              </p>
+              <p className="text-sm text-zinc-600 dark:text-zinc-400">Log in to add this title to your watchlist</p>
               <Link
                 href={`/login?next=${encodeURIComponent(`/movies/${movie.slug}`)}`}
                 className="mt-3 inline-flex text-sm font-medium text-zinc-950 hover:underline dark:text-zinc-50"
@@ -160,6 +203,7 @@ export default async function MovieDetailPage({ params, searchParams }: MovieDet
               </Link>
             </section>
           )}
+          <ReviewList reviews={publicReviews} />
         </div>
       </article>
     </main>

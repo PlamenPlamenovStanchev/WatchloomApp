@@ -1,9 +1,18 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import {
+  addFavouriteAction,
+  removeFavouriteForMediaAction,
+} from "@/actions/favourite.actions";
+import { createReviewAction, updateReviewAction } from "@/actions/review.actions";
 import { addSeriesToWatchlist } from "@/app/watchlist-actions";
+import { ReviewForm } from "@/components/reviews/ReviewForm";
+import { ReviewList } from "@/components/reviews/ReviewList";
 import { AddToWatchlistForm } from "@/components/watchlists/AddToWatchlistForm";
 import { getCurrentUser } from "@/lib/auth/current-user";
+import { getUserFavouriteForMedia } from "@/services/favourite.service";
+import { getPublicReviewsForMedia, getUserReviewForMedia } from "@/services/review.service";
 import { getSeriesBySlug, getSeriesSeasons } from "@/services/series.service";
 import { getUserWatchlists } from "@/services/watchlist.service";
 
@@ -14,6 +23,10 @@ type SeriesDetailPageProps = {
   searchParams: Promise<{
     watchlistError?: string;
     watchlistSuccess?: string;
+    favouriteError?: string;
+    favouriteSuccess?: string;
+    reviewError?: string;
+    reviewSuccess?: string;
   }>;
 };
 
@@ -57,12 +70,25 @@ export default async function SeriesDetailPage({ params, searchParams }: SeriesD
     notFound();
   }
 
-  const [seasons, watchlists, messages] = await Promise.all([
+  const [seasons, watchlists, favourite, publicReviews, userReview, messages] = await Promise.all([
     getSeriesSeasons(show.id),
     user ? getUserWatchlists(user.id) : [],
+    user ? getUserFavouriteForMedia(user.id, "series", show.id) : null,
+    getPublicReviewsForMedia("series", show.id),
+    user ? getUserReviewForMedia(user.id, "series", show.id) : null,
     searchParams,
   ]);
   const addAction = addSeriesToWatchlist.bind(null, show.id, `/series/${show.slug}`);
+  const addFavourite = addFavouriteAction.bind(null, "series", show.id, `/series/${show.slug}`);
+  const removeFavourite = removeFavouriteForMediaAction.bind(
+    null,
+    "series",
+    show.id,
+    `/series/${show.slug}`,
+  );
+  const reviewAction = userReview
+    ? updateReviewAction.bind(null, userReview.id, `/series/${show.slug}`)
+    : createReviewAction.bind(null, "series", show.id, `/series/${show.slug}`);
   const description = show.overview;
   const releaseYear = getYear(show.firstAirDate, show.releaseYear);
   const platform = show.network;
@@ -135,12 +161,31 @@ export default async function SeriesDetailPage({ params, searchParams }: SeriesD
           </section>
 
           {user ? (
-            <AddToWatchlistForm
-              action={addAction}
-              watchlists={watchlists}
-              error={messages.watchlistError}
-              success={messages.watchlistSuccess}
-            />
+            <>
+              <section className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+                <h2 className="text-xl font-semibold">Favourites</h2>
+                {messages.favouriteError ? <p className="mt-3 text-sm text-red-600">{messages.favouriteError}</p> : null}
+                {messages.favouriteSuccess ? <p className="mt-3 text-sm text-emerald-600">{messages.favouriteSuccess}</p> : null}
+                <form action={favourite ? removeFavourite : addFavourite} className="mt-4">
+                  <button type="submit" className="rounded-md bg-zinc-950 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-zinc-200">
+                    {favourite ? "Remove from Favourites" : "Add to Favourites"}
+                  </button>
+                </form>
+              </section>
+              <AddToWatchlistForm
+                action={addAction}
+                watchlists={watchlists}
+                error={messages.watchlistError}
+                success={messages.watchlistSuccess}
+              />
+              <ReviewForm
+                action={reviewAction}
+                submitLabel={userReview ? "Update review" : "Create review"}
+                defaultValues={userReview ?? undefined}
+                error={messages.reviewError}
+                success={messages.reviewSuccess}
+              />
+            </>
           ) : (
             <section className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
               <p className="text-sm text-zinc-600 dark:text-zinc-400">
@@ -154,6 +199,7 @@ export default async function SeriesDetailPage({ params, searchParams }: SeriesD
               </Link>
             </section>
           )}
+          <ReviewList reviews={publicReviews} />
 
           <section aria-labelledby="series-seasons">
             <h2 id="series-seasons" className="text-xl font-semibold">

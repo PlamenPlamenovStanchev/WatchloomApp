@@ -8,8 +8,8 @@ import type { SafeUser } from "@/services/auth.service";
 const dashboardLinks = [
   { href: "/dashboard", label: "Overview" },
   { href: "/dashboard/watchlists", label: "Watchlists" },
-  { href: "/favourites", label: "Favourites" },
-  { href: "/reviews", label: "Reviews" },
+  { href: "/dashboard/favourites", label: "Favourites" },
+  { href: "/dashboard/reviews", label: "Reviews" },
   { href: "/dashboard/planned", label: "Planned Watching" },
   { href: "/movies", label: "Browse Movies" },
   { href: "/series", label: "Browse Series" },

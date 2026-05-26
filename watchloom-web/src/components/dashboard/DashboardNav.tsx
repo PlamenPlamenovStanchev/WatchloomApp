@@ -8,13 +8,13 @@ const dashboardLinks = [
     label: "Open watchlists",
   },
   {
-    href: "/favourites",
+    href: "/dashboard/favourites",
     title: "Favourites",
     description: "Keep standout movies and series within easy reach.",
     label: "View favourites",
   },
   {
-    href: "/reviews",
+    href: "/dashboard/reviews",
     title: "My Reviews",
     description: "Manage the public notes and ratings you have written.",
     label: "View reviews",
