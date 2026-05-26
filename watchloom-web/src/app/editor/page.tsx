@@ -1,15 +1,74 @@
+import { count } from "drizzle-orm";
+
+import { EditorCard } from "@/components/editor/EditorCard";
+import { db } from "@/db";
+import { genres, movies, series } from "@/db/schema";
+
 export default function EditorPage() {
+  const statsPromise = getEditorStats();
+
+  return <EditorOverview statsPromise={statsPromise} />;
+}
+
+const getEditorStats = async () => {
+  const [[movieStats], [seriesStats], [genreStats]] = await Promise.all([
+    db.select({ total: count() }).from(movies),
+    db.select({ total: count() }).from(series),
+    db.select({ total: count() }).from(genres),
+  ]);
+
+  return {
+    movies: movieStats?.total ?? 0,
+    series: seriesStats?.total ?? 0,
+    genres: genreStats?.total ?? 0,
+  };
+};
+
+async function EditorOverview({
+  statsPromise,
+}: {
+  statsPromise: ReturnType<typeof getEditorStats>;
+}) {
+  const stats = await statsPromise;
+
   return (
-    <main className="min-h-screen bg-zinc-50 px-4 py-10 text-zinc-950 dark:bg-black dark:text-zinc-50 sm:px-6 lg:px-8">
-      <section className="mx-auto w-full max-w-7xl rounded-lg border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
-        <p className="text-sm font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-          Editor area
-        </p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight">Editor</h1>
-        <p className="mt-3 max-w-2xl text-sm leading-6 text-zinc-600 dark:text-zinc-400">
-          Catalog editing tools will live here. This route is available to editors and admins.
-        </p>
+    <div className="space-y-6">
+      <section className="grid gap-4 sm:grid-cols-3" aria-label="Catalog stats">
+        <EditorCard title="Movies" description="Total movie records" value={stats.movies} />
+        <EditorCard title="Series" description="Total series records" value={stats.series} />
+        <EditorCard title="Genres" description="Total genre records" value={stats.genres} />
       </section>
-    </main>
+
+      <section className="space-y-4" aria-labelledby="editor-quick-links-heading">
+        <div>
+          <h2 id="editor-quick-links-heading" className="text-xl font-semibold tracking-tight">
+            Quick links
+          </h2>
+          <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+            Start with the main catalog areas. CRUD tools will be added later.
+          </p>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <EditorCard
+            href="/editor/movies"
+            title="Manage Movies"
+            description="Review movie catalog entries and metadata."
+            label="Open movies"
+          />
+          <EditorCard
+            href="/editor/series"
+            title="Manage Series"
+            description="Review series catalog entries and metadata."
+            label="Open series"
+          />
+          <EditorCard
+            href="/editor/seasons"
+            title="Manage Seasons/Episodes"
+            description="Review season and episode structures."
+            label="Open seasons"
+          />
+        </div>
+      </section>
+    </div>
   );
 }
