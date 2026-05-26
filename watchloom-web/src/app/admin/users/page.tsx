@@ -7,6 +7,7 @@ type AdminUsersPageProps = {
     page?: string;
     q?: string;
     role?: string;
+    active?: string;
   }>;
 };
 
@@ -23,9 +24,20 @@ const roleOptions = [
   { value: "admin", label: "Admins" },
 ];
 
+const activeOptions = [
+  { value: "", label: "All statuses" },
+  { value: "active", label: "Active" },
+  { value: "inactive", label: "Inactive" },
+];
+
 export default async function AdminUsersPage({ searchParams }: AdminUsersPageProps) {
   const params = await searchParams;
-  const users = await getAdminUsers({ page: params.page, search: params.q, role: params.role });
+  const users = await getAdminUsers({
+    page: params.page,
+    search: params.q,
+    role: params.role,
+    active: params.active,
+  });
   const currentPage = users.page;
   const previousPage = Math.max(1, currentPage - 1);
   const nextPage = Math.min(users.totalPages, currentPage + 1);
@@ -33,6 +45,7 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
 
   if (users.search) query.set("q", users.search);
   if (users.role) query.set("role", users.role);
+  if (users.active) query.set("active", users.active);
 
   const queryPrefix = query.toString();
   const getPageHref = (page: number) =>
@@ -47,7 +60,7 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
         </p>
       </div>
 
-      <form action="/admin/users" className="grid gap-3 rounded-lg border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950 sm:grid-cols-[1fr_180px_auto]">
+      <form action="/admin/users" className="grid gap-3 rounded-lg border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950 sm:grid-cols-[1fr_170px_170px_auto]">
         <input
           name="q"
           defaultValue={users.search}
@@ -60,6 +73,17 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
           className="rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm outline-none focus:border-zinc-950 focus:ring-2 focus:ring-zinc-950/10 dark:border-zinc-700 dark:bg-black"
         >
           {roleOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+        <select
+          name="active"
+          defaultValue={users.active}
+          className="rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm outline-none focus:border-zinc-950 focus:ring-2 focus:ring-zinc-950/10 dark:border-zinc-700 dark:bg-black"
+        >
+          {activeOptions.map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}
             </option>

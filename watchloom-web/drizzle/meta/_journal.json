@@ -64,6 +64,13 @@
       "when": 1779789600000,
       "tag": "0008_add_episode_duration",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1779793200000,
+      "tag": "0009_add_users_is_active",
+      "breakpoints": true
     }
   ]
 }
