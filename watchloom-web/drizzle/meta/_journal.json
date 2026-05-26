@@ -50,6 +50,13 @@
       "when": 1779782400000,
       "tag": "0006_reviews_rating_six",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1779786000000,
+      "tag": "0007_add_season_editor_fields",
+      "breakpoints": true
     }
   ]
 }

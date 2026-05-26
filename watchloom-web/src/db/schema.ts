@@ -152,6 +152,8 @@ export const seasons = pgTable(
     title: text("title"),
     overview: text("overview"),
     releaseDate: date("release_date"),
+    releaseYear: integer("release_year"),
+    posterUrl: text("poster_url"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },

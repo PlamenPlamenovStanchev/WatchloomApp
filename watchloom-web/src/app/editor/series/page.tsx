@@ -97,7 +97,7 @@ export default async function EditorSeriesPage({ searchParams }: EditorSeriesPag
                             Edit
                           </Link>
                           <Link
-                            href={`/editor/seasons?seriesId=${show.id}`}
+                            href={`/editor/series/${show.id}/seasons`}
                             className="rounded-md border border-zinc-200 px-3 py-1.5 text-sm font-medium transition hover:bg-zinc-100 dark:border-zinc-800 dark:hover:bg-zinc-900"
                           >
                             Manage seasons
