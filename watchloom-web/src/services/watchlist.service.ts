@@ -1,4 +1,4 @@
-import { and, count, desc, eq, isNull } from "drizzle-orm";
+import { and, asc, count, desc, eq, isNotNull, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
 import { movies, series, watchlistItems, watchlists } from "@/db/schema";
@@ -50,6 +50,13 @@ export type WatchlistItemWithMedia = WatchlistItemRecord & {
 
 export type WatchlistWithItems = WatchlistRecord & {
   items: WatchlistItemWithMedia[];
+};
+
+export type PlannedWatchItem = WatchlistItemWithMedia & {
+  watchlist: {
+    id: number;
+    name: string;
+  };
 };
 
 export class WatchlistServiceError extends Error {
@@ -266,6 +273,39 @@ export const getWatchlistById = async (
       media: row.item.mediaType === "movie" ? row.movie : row.show,
     })),
   };
+};
+
+export const getPlannedWatchItems = async (userId: number): Promise<PlannedWatchItem[]> => {
+  const rows = await db
+    .select({
+      item: watchlistItems,
+      watchlist: {
+        id: watchlists.id,
+        name: watchlists.name,
+      },
+      movie: {
+        title: movies.title,
+        slug: movies.slug,
+        posterUrl: movies.posterUrl,
+      },
+      show: {
+        title: series.title,
+        slug: series.slug,
+        posterUrl: series.posterUrl,
+      },
+    })
+    .from(watchlistItems)
+    .innerJoin(watchlists, eq(watchlistItems.watchlistId, watchlists.id))
+    .leftJoin(movies, eq(watchlistItems.movieId, movies.id))
+    .leftJoin(series, eq(watchlistItems.seriesId, series.id))
+    .where(and(eq(watchlists.userId, userId), isNotNull(watchlistItems.plannedWatchAt)))
+    .orderBy(asc(watchlistItems.plannedWatchAt), asc(watchlistItems.createdAt));
+
+  return rows.map((row) => ({
+    ...row.item,
+    watchlist: row.watchlist,
+    media: row.item.mediaType === "movie" ? row.movie : row.show,
+  }));
 };
 
 export const createWatchlist = async (

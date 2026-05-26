@@ -7,7 +7,10 @@ import { getCurrentUser } from "@/lib/auth/current-user";
 import {
   createWatchlist,
   deleteWatchlist,
+  getWatchlistById,
+  removeWatchlistItem,
   updateWatchlist,
+  updateWatchlistItem,
   WatchlistServiceError,
 } from "@/services/watchlist.service";
 
@@ -35,6 +38,32 @@ const parseWatchlistId = (value: string) => {
   }
 
   return watchlistId;
+};
+
+const parseOptionalRating = (value: string) => {
+  if (!value) {
+    return null;
+  }
+
+  const rating = Number(value);
+
+  if (!Number.isInteger(rating)) {
+    throw new WatchlistServiceError("Rating must be a whole number.", "INVALID_INPUT");
+  }
+
+  return rating;
+};
+
+const assertOwnedItemInWatchlist = async (
+  userId: number,
+  watchlistId: number,
+  watchlistItemId: number,
+) => {
+  const watchlist = await getWatchlistById(userId, watchlistId);
+
+  if (!watchlist || !watchlist.items.some((item) => item.id === watchlistItemId)) {
+    notFound();
+  }
 };
 
 export async function createWatchlistAction(formData: FormData) {
@@ -94,4 +123,68 @@ export async function deleteWatchlistAction(watchlistIdValue: string) {
 
   revalidatePath("/dashboard/watchlists");
   redirect("/dashboard/watchlists");
+}
+
+export async function updateWatchlistItemAction(
+  watchlistIdValue: string,
+  watchlistItemIdValue: string,
+  formData: FormData,
+) {
+  const user = await getAuthenticatedUser();
+  const watchlistId = parseWatchlistId(watchlistIdValue);
+  const watchlistItemId = parseWatchlistId(watchlistItemIdValue);
+  const status = getStringValue(formData, "status");
+  const rating = parseOptionalRating(getStringValue(formData, "rating"));
+  const notes = getStringValue(formData, "notes");
+  const plannedWatchAtValue = getStringValue(formData, "plannedWatchAt");
+  const plannedWatchAt = plannedWatchAtValue ? plannedWatchAtValue : null;
+
+  await assertOwnedItemInWatchlist(user.id, watchlistId, watchlistItemId);
+
+  try {
+    const item = await updateWatchlistItem(user.id, watchlistItemId, {
+      status:
+        status === "watched" || status === "watching" || status === "to_watch"
+          ? status
+          : undefined,
+      rating,
+      notes,
+      plannedWatchAt,
+    });
+
+    if (!item || item.watchlistId !== watchlistId) {
+      notFound();
+    }
+
+    revalidatePath(`/dashboard/watchlists/${watchlistId}`);
+    revalidatePath("/dashboard/planned");
+  } catch (error) {
+    if (error instanceof WatchlistServiceError) {
+      redirect(
+        `/dashboard/watchlists/${watchlistId}?error=${encodeURIComponent(error.message)}`,
+      );
+    }
+
+    throw error;
+  }
+}
+
+export async function removeWatchlistItemAction(
+  watchlistIdValue: string,
+  watchlistItemIdValue: string,
+) {
+  const user = await getAuthenticatedUser();
+  const watchlistId = parseWatchlistId(watchlistIdValue);
+  const watchlistItemId = parseWatchlistId(watchlistItemIdValue);
+
+  await assertOwnedItemInWatchlist(user.id, watchlistId, watchlistItemId);
+
+  const removed = await removeWatchlistItem(user.id, watchlistItemId);
+
+  if (!removed) {
+    notFound();
+  }
+
+  revalidatePath(`/dashboard/watchlists/${watchlistId}`);
+  revalidatePath("/dashboard/planned");
 }

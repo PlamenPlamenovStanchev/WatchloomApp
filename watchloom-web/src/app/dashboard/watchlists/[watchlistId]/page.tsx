@@ -2,14 +2,22 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import { DeleteWatchlistButton } from "@/components/watchlists/DeleteWatchlistButton";
+import { WatchlistItemManager } from "@/components/watchlists/WatchlistItemManager";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { getWatchlistById } from "@/services/watchlist.service";
 
-import { deleteWatchlistAction } from "../actions";
+import {
+  deleteWatchlistAction,
+  removeWatchlistItemAction,
+  updateWatchlistItemAction,
+} from "../actions";
 
 type WatchlistDetailPageProps = {
   params: Promise<{
     watchlistId: string;
+  }>;
+  searchParams: Promise<{
+    error?: string;
   }>;
 };
 
@@ -23,11 +31,10 @@ const parseWatchlistId = (value: string) => {
   return watchlistId;
 };
 
-const formatStatus = (status: string) => {
-  return status.replaceAll("_", " ");
-};
-
-export default async function WatchlistDetailPage({ params }: WatchlistDetailPageProps) {
+export default async function WatchlistDetailPage({
+  params,
+  searchParams,
+}: WatchlistDetailPageProps) {
   const user = await getCurrentUser();
 
   if (!user) {
@@ -35,6 +42,7 @@ export default async function WatchlistDetailPage({ params }: WatchlistDetailPag
   }
 
   const { watchlistId: watchlistIdValue } = await params;
+  const { error } = await searchParams;
   const watchlistId = parseWatchlistId(watchlistIdValue);
   const watchlist = await getWatchlistById(user.id, watchlistId);
 
@@ -71,6 +79,12 @@ export default async function WatchlistDetailPage({ params }: WatchlistDetailPag
         </div>
       </div>
 
+      {error ? (
+        <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-200">
+          {error}
+        </p>
+      ) : null}
+
       <section aria-labelledby="watchlist-items-heading">
         <div className="flex items-center justify-between gap-4">
           <h3 id="watchlist-items-heading" className="text-xl font-semibold tracking-tight">
@@ -92,29 +106,24 @@ export default async function WatchlistDetailPage({ params }: WatchlistDetailPag
           <div className="mt-4 overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
             <ul className="divide-y divide-zinc-200 dark:divide-zinc-800">
               {watchlist.items.map((item) => {
-                const href =
-                  item.mediaType === "movie"
-                    ? `/movies/${item.media?.slug}`
-                    : `/series/${item.media?.slug}`;
+                const updateAction = updateWatchlistItemAction.bind(
+                  null,
+                  String(watchlist.id),
+                  String(item.id),
+                );
+                const removeAction = removeWatchlistItemAction.bind(
+                  null,
+                  String(watchlist.id),
+                  String(item.id),
+                );
 
                 return (
-                  <li key={item.id} className="p-4">
-                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                      {item.media ? (
-                        <Link href={href} className="font-medium hover:underline">
-                          {item.media.title}
-                        </Link>
-                      ) : (
-                        <span className="font-medium">Unavailable title</span>
-                      )}
-                      <span className="text-sm capitalize text-zinc-500 dark:text-zinc-400">
-                        {formatStatus(item.status)}
-                      </span>
-                    </div>
-                    {item.notes ? (
-                      <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">{item.notes}</p>
-                    ) : null}
-                  </li>
+                  <WatchlistItemManager
+                    key={item.id}
+                    item={item}
+                    updateAction={updateAction}
+                    removeAction={removeAction}
+                  />
                 );
               })}
             </ul>

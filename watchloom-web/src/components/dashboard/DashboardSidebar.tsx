@@ -10,7 +10,7 @@ const dashboardLinks = [
   { href: "/dashboard/watchlists", label: "Watchlists" },
   { href: "/favourites", label: "Favourites" },
   { href: "/reviews", label: "Reviews" },
-  { href: "/dashboard/watchlists", label: "Planned Watching" },
+  { href: "/dashboard/planned", label: "Planned Watching" },
   { href: "/movies", label: "Browse Movies" },
   { href: "/series", label: "Browse Series" },
 ];
