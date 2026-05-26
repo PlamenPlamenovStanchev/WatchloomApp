@@ -7,10 +7,10 @@ import type { SafeUser } from "@/services/auth.service";
 
 const dashboardLinks = [
   { href: "/dashboard", label: "Overview" },
-  { href: "/watchlists", label: "Watchlists" },
+  { href: "/dashboard/watchlists", label: "Watchlists" },
   { href: "/favourites", label: "Favourites" },
   { href: "/reviews", label: "Reviews" },
-  { href: "/watchlists", label: "Planned Watching" },
+  { href: "/dashboard/watchlists", label: "Planned Watching" },
   { href: "/movies", label: "Browse Movies" },
   { href: "/series", label: "Browse Series" },
 ];
@@ -34,7 +34,9 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
 
       <nav className="mt-4 grid gap-1" aria-label="Dashboard navigation">
         {dashboardLinks.map((link) => {
-          const isActive = pathname === link.href;
+          const isActive =
+            pathname === link.href ||
+            (link.href !== "/dashboard" && pathname.startsWith(`${link.href}/`));
 
           return (
             <Link

@@ -2,7 +2,7 @@ import { DashboardCard } from "./DashboardCard";
 
 const dashboardLinks = [
   {
-    href: "/watchlists",
+    href: "/dashboard/watchlists",
     title: "My Watchlists",
     description: "Organize movies and shows into personal lists.",
     label: "Open watchlists",
@@ -20,7 +20,7 @@ const dashboardLinks = [
     label: "View reviews",
   },
   {
-    href: "/watchlists",
+    href: "/dashboard/watchlists",
     title: "Planned Watching",
     description: "Check titles you have marked for future watching.",
     label: "See planned titles",

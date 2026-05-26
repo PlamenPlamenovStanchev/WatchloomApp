@@ -1,27 +1,7 @@
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
-import { AUTH_COOKIE_NAME } from "@/lib/auth/cookies";
-import { verifyAccessToken } from "@/lib/auth/jwt";
-import { getSafeUserById } from "@/services/auth.service";
-
-const getCurrentUser = async () => {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(AUTH_COOKIE_NAME)?.value;
-
-  if (!token) {
-    return null;
-  }
-
-  try {
-    const payload = await verifyAccessToken(token);
-
-    return getSafeUserById(payload.userId);
-  } catch {
-    return null;
-  }
-};
+import { getCurrentUser } from "@/lib/auth/current-user";
 
 export default async function DashboardLayout({
   children,
