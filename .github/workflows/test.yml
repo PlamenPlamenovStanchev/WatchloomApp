@@ -1,0 +1,120 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  NODE_VERSION: "20.x"
+
+jobs:
+  validate:
+    name: Validation & Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Typecheck
+        working-directory: ./watchloom-web
+        run: npx tsc --noEmit
+
+      - name: Lint
+        working-directory: ./watchloom-web
+        run: npm run lint
+
+      - name: Unit Tests
+        working-directory: ./watchloom-web
+        run: npm run test:unit --if-present || npx jest --testPathIgnorePatterns="integration|e2e"
+
+      - name: Build Web App
+        working-directory: ./watchloom-web
+        env:
+          # Use dummy URLs for next build step if the secret is unavailable locally or in PRs
+          DATABASE_URL: ${{ secrets.TEST_DATABASE_URL || 'postgresql://dummy:dummy@localhost:5432/dummy' }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET || 'dummy-jwt-secret' }}
+          TMDB_API_KEY: "dummy-key-to-avoid-errors"
+        run: npm run build
+
+  integration:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: validate
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Reset DB & Migrate
+        working-directory: ./watchloom-web
+        if: ${{ secrets.TEST_DATABASE_URL != '' }}
+        env:
+          DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
+        run: npm run db:migrate
+
+      - name: Integration Tests
+        working-directory: ./watchloom-web
+        if: ${{ secrets.TEST_DATABASE_URL != '' }}
+        env:
+          DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET || 'dummy-jwt-secret' }}
+        run: npm run test:integration --if-present || npx jest --testMatch="**/integration/**/*.test.ts"
+
+  e2e:
+    name: Playwright E2E Tests
+    runs-on: ubuntu-latest
+    needs: validate
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install Playwright Browsers
+        working-directory: ./watchloom-web
+        run: npx playwright install --with-deps
+
+      - name: Setup Test DB (Migrate & Seed)
+        working-directory: ./watchloom-web
+        if: ${{ secrets.TEST_DATABASE_URL != '' }}
+        env:
+          DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
+        run: |
+          npm run db:migrate
+          npm run db:seed
+
+      - name: Run E2E Tests
+        working-directory: ./watchloom-web
+        if: ${{ secrets.TEST_DATABASE_URL != '' }}
+        env:
+          DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET || 'dummy-jwt-secret' }}
+          # Expose mock variables to avoid external API calls in E2E
+          TMDB_API_KEY: "dummy-key-to-avoid-errors"
+        run: npm run test:e2e --if-present || npx playwright test
