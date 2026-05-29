@@ -24,8 +24,16 @@ export class FavouriteServiceError extends Error {
   }
 }
 
-const isUniqueConstraintError = (error: unknown) => {
-  return typeof error === "object" && error !== null && "code" in error && error.code === "23505";
+const isUniqueConstraintError = (error: unknown): boolean => {
+  if (typeof error !== "object" || error === null) {
+    return false;
+  }
+
+  if ("code" in error && error.code === "23505") {
+    return true;
+  }
+
+  return "cause" in error && isUniqueConstraintError(error.cause);
 };
 
 const assertMediaExists = async (mediaType: MediaType, mediaId: number) => {

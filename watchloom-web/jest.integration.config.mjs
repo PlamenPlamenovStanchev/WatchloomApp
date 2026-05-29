@@ -9,9 +9,11 @@ const customJestConfig = {
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",
   },
-  setupFiles: ["<rootDir>/jest.setup.ts"],
+  setupFiles: ["<rootDir>/test/integration/jest.env.ts"],
+  setupFilesAfterEnv: ["<rootDir>/test/integration/jest.setup.ts"],
   testEnvironment: "node",
-  testMatch: ["<rootDir>/__tests__/unit/**/*.test.ts"],
+  testMatch: ["<rootDir>/__tests__/integration/**/*.test.ts"],
+  testTimeout: 60000,
 };
 
 export default createJestConfig(customJestConfig);
