@@ -9,7 +9,10 @@ if (!testDatabaseUrl) {
   throw new Error("TEST_DATABASE_URL is required for integration tests.");
 }
 
-if (process.env.DATABASE_URL && process.env.DATABASE_URL !== testDatabaseUrl) {
+if (
+  process.env.DATABASE_URL &&
+  process.env.DATABASE_URL !== testDatabaseUrl
+) {
   throw new Error("Integration tests must use TEST_DATABASE_URL as DATABASE_URL.");
 }
 
