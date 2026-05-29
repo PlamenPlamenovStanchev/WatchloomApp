@@ -30,7 +30,6 @@ async function globalSetup() {
       JWT_SECRET: process.env.JWT_SECRET || "watchloom-e2e-test-secret",
       WATCHLOOM_ALLOW_TEST_DATABASE_AS_DATABASE_URL: "true",
     },
-    shell: true,
     stdio: "inherit",
   });
 }
