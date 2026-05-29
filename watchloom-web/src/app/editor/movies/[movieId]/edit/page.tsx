@@ -2,7 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { updateEditorMovieAction } from "@/actions/editor-movie.actions";
+import { uploadMoviePoster } from "@/actions/media-upload.actions";
 import { EditorMovieForm } from "@/components/editor/EditorMovieForm";
+import { PosterUploadForm } from "@/components/editor/PosterUploadForm";
 import { getEditorMovieById } from "@/services/editor-movie.service";
 import { getGenres } from "@/services/genre.service";
 
@@ -13,6 +15,8 @@ type EditEditorMoviePageProps = {
   searchParams: Promise<{
     error?: string;
     success?: string;
+    posterError?: string;
+    posterSuccess?: string;
   }>;
 };
 
@@ -43,6 +47,7 @@ export default async function EditEditorMoviePage({
   }
 
   const updateAction = updateEditorMovieAction.bind(null, String(movie.id));
+  const posterUploadAction = uploadMoviePoster.bind(null, String(movie.id));
 
   return (
     <section className="space-y-5">
@@ -58,6 +63,14 @@ export default async function EditEditorMoviePage({
           Update catalog metadata for {movie.title}.
         </p>
       </div>
+
+      <PosterUploadForm
+        action={posterUploadAction}
+        posterUrl={movie.posterUrl}
+        mediaTitle={movie.title}
+        error={messages.posterError}
+        success={messages.posterSuccess}
+      />
 
       <EditorMovieForm
         action={updateAction}
