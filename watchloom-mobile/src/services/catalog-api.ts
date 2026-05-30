@@ -1,26 +1,27 @@
 import { apiClient } from '@/lib/api-client';
 import type {
   CatalogQueryParams,
-  Movie,
-  PaginatedResponse,
+  MovieDetailsResponse,
+  MovieListResponse,
   SeasonEpisodes,
-  Series,
+  SeriesDetailsResponse,
+  SeriesListResponse,
 } from '@/types/api';
 
 export function getMovies(params: CatalogQueryParams = {}) {
-  return apiClient.get<PaginatedResponse<Movie>>('/api/movies', { query: params });
+  return apiClient.get<MovieListResponse>('/api/movies', { query: params });
 }
 
 export function getMovieBySlug(slug: string) {
-  return apiClient.get<Movie>(`/api/movies/${encodeURIComponent(slug)}`);
+  return apiClient.get<MovieDetailsResponse>(`/api/movies/${encodeURIComponent(slug)}`);
 }
 
 export function getSeries(params: CatalogQueryParams = {}) {
-  return apiClient.get<PaginatedResponse<Series>>('/api/series', { query: params });
+  return apiClient.get<SeriesListResponse>('/api/series', { query: params });
 }
 
 export function getSeriesBySlug(slug: string) {
-  return apiClient.get<Series>(`/api/series/${encodeURIComponent(slug)}`);
+  return apiClient.get<SeriesDetailsResponse>(`/api/series/${encodeURIComponent(slug)}`);
 }
 
 export function getSeasonEpisodes(seasonId: number | string) {

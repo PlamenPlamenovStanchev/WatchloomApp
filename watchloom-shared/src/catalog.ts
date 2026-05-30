@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export type MediaType = "movie" | "series";
 
-export type SeriesStatus = "ongoing" | "ended" | "cancelled" | "unknown";
+export type SeriesStatus = "Ended" | "Returning" | "Continuing";
 
 const optionalTrimmedStringSchema = z.preprocess(
   (value) => {

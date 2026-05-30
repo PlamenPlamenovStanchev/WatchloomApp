@@ -18,7 +18,9 @@ export type RegisterInput = z.infer<typeof registerSchema>;
 
 export interface AuthUserDto {
   id: number;
-  name: string;
   email: string;
+  username: string;
   role: UserRole;
+  isActive: boolean;
+  createdAt: string;
 }
