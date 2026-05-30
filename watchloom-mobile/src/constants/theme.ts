@@ -8,6 +8,7 @@ export const theme = {
     accent: '#38BDF8',
     accentText: '#082F49',
     disabled: '#475569',
+    danger: '#F87171',
   },
   spacing: {
     xs: 4,

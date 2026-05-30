@@ -1,25 +1,44 @@
-import { Pressable, StyleSheet, Text, type PressableProps } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, type PressableProps } from 'react-native';
 
 import { theme } from '@/constants/theme';
 
-type ButtonProps = PressableProps & {
-  label: string;
+type ButtonVariant = 'primary' | 'secondary' | 'ghost';
+
+type ButtonProps = Omit<PressableProps, 'children'> & {
+  loading?: boolean;
+  title: string;
+  variant?: ButtonVariant;
 };
 
-export function Button({ disabled, label, style, ...props }: ButtonProps) {
+export function Button({
+  disabled,
+  loading = false,
+  style,
+  title,
+  variant = 'primary',
+  ...props
+}: ButtonProps) {
+  const isDisabled = disabled || loading;
+  const indicatorColor = variant === 'primary' ? theme.colors.accentText : theme.colors.text;
+
   return (
     <Pressable
       accessibilityRole="button"
-      disabled={disabled}
+      disabled={isDisabled}
       style={(state) => [
         styles.button,
-        state.pressed && !disabled && styles.pressed,
-        disabled && styles.disabled,
+        styles[variant],
+        state.pressed && !isDisabled && styles.pressed,
+        isDisabled && styles.disabled,
         typeof style === 'function' ? style(state) : style,
       ]}
       {...props}
     >
-      <Text style={styles.label}>{label}</Text>
+      {loading ? (
+        <ActivityIndicator color={indicatorColor} size="small" />
+      ) : (
+        <Text style={[styles.title, styles[`${variant}Title`]]}>{title}</Text>
+      )}
     </Pressable>
   );
 }
@@ -27,20 +46,40 @@ export function Button({ disabled, label, style, ...props }: ButtonProps) {
 const styles = StyleSheet.create({
   button: {
     alignItems: 'center',
-    backgroundColor: theme.colors.accent,
     borderRadius: theme.radius.sm,
+    justifyContent: 'center',
+    minHeight: 48,
     paddingHorizontal: theme.spacing.md,
     paddingVertical: 12,
+  },
+  primary: {
+    backgroundColor: theme.colors.accent,
+  },
+  secondary: {
+    backgroundColor: theme.colors.surface,
+    borderColor: theme.colors.border,
+    borderWidth: 1,
+  },
+  ghost: {
+    backgroundColor: 'transparent',
   },
   pressed: {
     opacity: 0.8,
   },
   disabled: {
-    backgroundColor: theme.colors.disabled,
+    opacity: 0.55,
   },
-  label: {
-    color: theme.colors.accentText,
+  title: {
     fontSize: theme.fontSizes.md,
     fontWeight: '600',
+  },
+  primaryTitle: {
+    color: theme.colors.accentText,
+  },
+  secondaryTitle: {
+    color: theme.colors.text,
+  },
+  ghostTitle: {
+    color: theme.colors.accent,
   },
 });
