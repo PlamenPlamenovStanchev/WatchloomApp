@@ -42,6 +42,11 @@ export type LoginResponse = {
   accessToken: string;
 };
 
+export type RegisterResponse = {
+  user: AuthUserDto;
+  accessToken?: string;
+};
+
 export type UserResponse = {
   user: AuthUserDto;
 };

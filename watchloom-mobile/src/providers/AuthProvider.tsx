@@ -20,8 +20,13 @@ type AuthContextValue = {
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
-  register: (input: RegisterInput) => Promise<AuthUserDto>;
+  register: (input: RegisterInput) => Promise<RegisterResult>;
   user: AuthUserDto | null;
+};
+
+type RegisterResult = {
+  isAuthenticated: boolean;
+  user: AuthUserDto;
 };
 
 export const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -120,7 +125,16 @@ export function AuthProvider({ children }: PropsWithChildren) {
     try {
       const response = await registerRequest(input);
 
-      return response.user;
+      if (response.accessToken) {
+        await saveAccessToken(response.accessToken);
+        setAccessToken(response.accessToken);
+        setUser(response.user);
+      }
+
+      return {
+        isAuthenticated: Boolean(response.accessToken),
+        user: response.user,
+      };
     } catch (registerError) {
       setError(getErrorMessage(registerError));
       throw registerError;
