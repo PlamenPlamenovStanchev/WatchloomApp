@@ -1,5 +1,9 @@
-const DEFAULT_API_URL = 'http://localhost:3000';
+const apiBaseUrl = process.env.EXPO_PUBLIC_API_BASE_URL?.trim().replace(/\/+$/, '');
 
-export const env = {
-  apiUrl: process.env.EXPO_PUBLIC_API_URL ?? DEFAULT_API_URL,
-} as const;
+if (!apiBaseUrl) {
+  console.warn(
+    'EXPO_PUBLIC_API_BASE_URL is not configured. Mobile API requests will fail until it is set.',
+  );
+}
+
+export const API_BASE_URL = apiBaseUrl ?? '';

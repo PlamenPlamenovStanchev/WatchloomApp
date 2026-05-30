@@ -12,8 +12,8 @@ npm install
 npm run dev:mobile
 ```
 
-The API base URL can be configured with `EXPO_PUBLIC_API_URL`. During local development it defaults
-to `http://localhost:3000`.
+Configure the API base URL with `EXPO_PUBLIC_API_BASE_URL`. For local development, point it to the
+reachable URL for the Next.js backend, such as `http://localhost:3000` when running in a browser.
 
 ## Structure
 
