@@ -2,9 +2,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { router, type Href, useLocalSearchParams } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { EpisodeList } from '@/components/details/EpisodeList';
 import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
-import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { LoadingState } from '@/components/ui/LoadingState';
 import { Screen } from '@/components/ui/Screen';
@@ -111,43 +110,8 @@ export default function SeasonEpisodesScreen() {
         <Text style={styles.subtitle}>Season ID: {seasonId}</Text>
       </View>
 
-      {episodes.length > 0 ? (
-        <View style={styles.episodes}>
-          {episodes.map((episode) => (
-            <EpisodeCard episode={episode} key={episode.id} />
-          ))}
-        </View>
-      ) : (
-        <EmptyState
-          message="Episodes will appear here when they are added."
-          title="No episodes available"
-        />
-      )}
+      <EpisodeList episodes={episodes} />
     </Screen>
-  );
-}
-
-type EpisodeCardProps = {
-  episode: EpisodeDto;
-};
-
-function EpisodeCard({ episode }: EpisodeCardProps) {
-  return (
-    <Card>
-      <Text style={styles.episodeNumber}>EPISODE {episode.episodeNumber}</Text>
-      <Text style={styles.episodeTitle}>{episode.title}</Text>
-      {episode.overview ? (
-        <Text style={styles.body}>{episode.overview}</Text>
-      ) : (
-        <Text style={styles.body}>No description is available for this episode.</Text>
-      )}
-      <View style={styles.metadata}>
-        {episode.durationMinutes ? (
-          <Text style={styles.metadataText}>{episode.durationMinutes} min</Text>
-        ) : null}
-        {episode.airDate ? <Text style={styles.metadataText}>{episode.airDate}</Text> : null}
-      </View>
-    </Card>
   );
 }
 
@@ -176,33 +140,5 @@ const styles = StyleSheet.create({
   subtitle: {
     color: theme.colors.textMuted,
     fontSize: theme.fontSizes.md,
-  },
-  episodes: {
-    gap: theme.spacing.md,
-  },
-  episodeNumber: {
-    color: theme.colors.accent,
-    fontSize: theme.fontSizes.sm,
-    fontWeight: '700',
-    letterSpacing: 1,
-  },
-  episodeTitle: {
-    color: theme.colors.text,
-    fontSize: theme.fontSizes.lg,
-    fontWeight: '600',
-  },
-  body: {
-    color: theme.colors.textMuted,
-    fontSize: theme.fontSizes.md,
-    lineHeight: 24,
-  },
-  metadata: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: theme.spacing.md,
-  },
-  metadataText: {
-    color: theme.colors.textMuted,
-    fontSize: theme.fontSizes.sm,
   },
 });

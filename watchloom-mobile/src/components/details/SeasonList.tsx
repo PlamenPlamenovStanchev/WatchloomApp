@@ -40,12 +40,8 @@ export function SeasonList({ onPressSeason, seasons }: SeasonListProps) {
         >
           <Card>
             <Text style={styles.title}>{season.title || `Season ${season.seasonNumber}`}</Text>
-            {season.releaseDate ? <Text style={styles.metadata}>{season.releaseDate}</Text> : null}
-            {season.overview ? (
-              <Text numberOfLines={3} style={styles.body}>
-                {season.overview}
-              </Text>
-            ) : null}
+            <Text style={styles.metadata}>{season.releaseDate || 'Release date unavailable'}</Text>
+            <Text style={styles.body}>{season.overview || 'Description unavailable'}</Text>
           </Card>
         </Pressable>
       ))}

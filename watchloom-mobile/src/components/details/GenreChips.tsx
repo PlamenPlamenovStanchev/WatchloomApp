@@ -9,7 +9,7 @@ type GenreChipsProps = {
 
 export function GenreChips({ genres }: GenreChipsProps) {
   if (!genres || genres.length === 0) {
-    return null;
+    return <Text style={styles.unavailable}>Unavailable</Text>;
   }
 
   return (
@@ -40,5 +40,9 @@ const styles = StyleSheet.create({
   text: {
     color: theme.colors.accent,
     fontSize: theme.fontSizes.sm,
+  },
+  unavailable: {
+    color: theme.colors.textMuted,
+    fontSize: theme.fontSizes.md,
   },
 });

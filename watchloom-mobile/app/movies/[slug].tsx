@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import { router, type Href, useLocalSearchParams } from 'expo-router';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
+import { CastBlock } from '@/components/details/CastBlock';
+import { DetailInfoRow } from '@/components/details/DetailInfoRow';
+import { GenreChips } from '@/components/details/GenreChips';
+import { PosterHeader } from '@/components/details/PosterHeader';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { ErrorState } from '@/components/ui/ErrorState';
@@ -105,22 +109,13 @@ export default function MovieDetailsScreen() {
     <Screen>
       <Button onPress={goBack} title="Back" variant="ghost" />
 
-      {movie.posterUrl ? (
-        <Image source={{ uri: movie.posterUrl }} style={styles.poster} />
-      ) : (
-        <View style={[styles.poster, styles.posterPlaceholder]}>
-          <Text style={styles.placeholderText}>No poster available</Text>
-        </View>
-      )}
-
-      <View style={styles.header}>
-        <Text style={styles.eyebrow}>MOVIE</Text>
-        <Text style={styles.title}>{movie.title}</Text>
-        <Text style={styles.metadata}>{formatSummary(movie)}</Text>
-        {movie.genres && movie.genres.length > 0 ? (
-          <Text style={styles.genres}>{movie.genres.map((genre) => genre.name).join(', ')}</Text>
-        ) : null}
-      </View>
+      <PosterHeader
+        eyebrow="MOVIE"
+        metadata={formatSummary(movie)}
+        posterUrl={movie.posterUrl}
+        title={movie.title}
+      />
+      <GenreChips genres={movie.genres} />
 
       <Card>
         <Text style={styles.sectionTitle}>Overview</Text>
@@ -129,14 +124,14 @@ export default function MovieDetailsScreen() {
 
       <Card>
         <Text style={styles.sectionTitle}>Details</Text>
-        <DetailRow label="Release year" value={movie.releaseYear} />
-        <DetailRow
+        <DetailInfoRow label="Release year" value={movie.releaseYear} />
+        <DetailInfoRow
           label="Duration"
           value={movie.durationMinutes ? `${movie.durationMinutes} min` : undefined}
         />
-        <DetailRow label="Director" value={movie.director} />
-        <DetailRow label="Writer" value={movie.writer} />
-        <DetailRow label="Cast" value={movie.cast} />
+        <DetailInfoRow label="Director" value={movie.director} />
+        <DetailInfoRow label="Writer" value={movie.writer} />
+        <CastBlock cast={movie.cast} />
       </Card>
 
       {isAuthenticated ? (
@@ -151,20 +146,6 @@ export default function MovieDetailsScreen() {
         </Card>
       )}
     </Screen>
-  );
-}
-
-type DetailRowProps = {
-  label: string;
-  value?: number | string | null;
-};
-
-function DetailRow({ label, value }: DetailRowProps) {
-  return (
-    <View style={styles.detailRow}>
-      <Text style={styles.detailLabel}>{label}</Text>
-      <Text style={styles.detailValue}>{value || 'Not available'}</Text>
-    </View>
   );
 }
 
@@ -185,47 +166,6 @@ const styles = StyleSheet.create({
   actions: {
     gap: theme.spacing.sm,
   },
-  poster: {
-    alignSelf: 'center',
-    backgroundColor: theme.colors.disabled,
-    borderRadius: theme.radius.md,
-    height: 390,
-    maxWidth: 260,
-    width: '100%',
-  },
-  posterPlaceholder: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: theme.spacing.lg,
-  },
-  placeholderText: {
-    color: theme.colors.textMuted,
-    fontSize: theme.fontSizes.md,
-    textAlign: 'center',
-  },
-  header: {
-    gap: theme.spacing.sm,
-  },
-  eyebrow: {
-    color: theme.colors.accent,
-    fontSize: theme.fontSizes.sm,
-    fontWeight: '700',
-    letterSpacing: 2,
-  },
-  title: {
-    color: theme.colors.text,
-    fontSize: theme.fontSizes.xxl,
-    fontWeight: '700',
-  },
-  metadata: {
-    color: theme.colors.textMuted,
-    fontSize: theme.fontSizes.md,
-  },
-  genres: {
-    color: theme.colors.accent,
-    fontSize: theme.fontSizes.md,
-    lineHeight: 22,
-  },
   sectionTitle: {
     color: theme.colors.text,
     fontSize: theme.fontSizes.lg,
@@ -235,19 +175,5 @@ const styles = StyleSheet.create({
     color: theme.colors.textMuted,
     fontSize: theme.fontSizes.md,
     lineHeight: 24,
-  },
-  detailRow: {
-    gap: theme.spacing.xs,
-  },
-  detailLabel: {
-    color: theme.colors.textMuted,
-    fontSize: theme.fontSizes.sm,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-  },
-  detailValue: {
-    color: theme.colors.text,
-    fontSize: theme.fontSizes.md,
-    lineHeight: 22,
   },
 });

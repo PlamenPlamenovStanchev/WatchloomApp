@@ -34,9 +34,9 @@ const styles = StyleSheet.create({
   },
   poster: {
     alignSelf: 'center',
+    aspectRatio: 2 / 3,
     backgroundColor: theme.colors.disabled,
     borderRadius: theme.radius.md,
-    height: 390,
     maxWidth: 260,
     width: '100%',
   },

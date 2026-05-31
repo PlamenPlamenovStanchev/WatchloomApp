@@ -1,10 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
 import { router, type Href, useLocalSearchParams } from 'expo-router';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
+import { CastBlock } from '@/components/details/CastBlock';
+import { DetailInfoRow } from '@/components/details/DetailInfoRow';
+import { GenreChips } from '@/components/details/GenreChips';
+import { PosterHeader } from '@/components/details/PosterHeader';
+import { SeasonList } from '@/components/details/SeasonList';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { LoadingState } from '@/components/ui/LoadingState';
 import { Screen } from '@/components/ui/Screen';
@@ -115,22 +119,13 @@ export default function SeriesDetailsScreen() {
     <Screen>
       <Button onPress={goBack} title="Back" variant="ghost" />
 
-      {series.posterUrl ? (
-        <Image source={{ uri: series.posterUrl }} style={styles.poster} />
-      ) : (
-        <View style={[styles.poster, styles.posterPlaceholder]}>
-          <Text style={styles.placeholderText}>No poster available</Text>
-        </View>
-      )}
-
-      <View style={styles.header}>
-        <Text style={styles.eyebrow}>SERIES</Text>
-        <Text style={styles.title}>{series.title}</Text>
-        <Text style={styles.metadata}>{formatSummary(series)}</Text>
-        {series.genres && series.genres.length > 0 ? (
-          <Text style={styles.genres}>{series.genres.map((genre) => genre.name).join(', ')}</Text>
-        ) : null}
-      </View>
+      <PosterHeader
+        eyebrow="SERIES"
+        metadata={formatSummary(series)}
+        posterUrl={series.posterUrl}
+        title={series.title}
+      />
+      <GenreChips genres={series.genres} />
 
       <Card>
         <Text style={styles.sectionTitle}>Overview</Text>
@@ -139,27 +134,16 @@ export default function SeriesDetailsScreen() {
 
       <Card>
         <Text style={styles.sectionTitle}>Details</Text>
-        <DetailRow label="Release year" value={series.releaseYear} />
-        <DetailRow label="Status" value={series.status} />
-        <DetailRow label="Network" value={series.network} />
-        <DetailRow label="Creator" value={series.creator} />
-        <DetailRow label="Cast" value={series.cast} />
+        <DetailInfoRow label="Release year" value={series.releaseYear} />
+        <DetailInfoRow label="Status" value={series.status} />
+        <DetailInfoRow label="Network" value={series.network} />
+        <DetailInfoRow label="Creator" value={series.creator} />
+        <CastBlock cast={series.cast} />
       </Card>
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Seasons</Text>
-        {seasons.length > 0 ? (
-          <View style={styles.seasons}>
-            {seasons.map((season) => (
-              <SeasonCard key={season.id} season={season} />
-            ))}
-          </View>
-        ) : (
-          <EmptyState
-            message="Episodes will appear here when seasons are added."
-            title="No seasons available"
-          />
-        )}
+        <SeasonList seasons={seasons} />
       </View>
 
       {isAuthenticated ? (
@@ -177,45 +161,6 @@ export default function SeriesDetailsScreen() {
   );
 }
 
-type SeasonCardProps = {
-  season: SeasonDto;
-};
-
-function SeasonCard({ season }: SeasonCardProps) {
-  return (
-    <Pressable
-      accessibilityLabel={`View season ${season.seasonNumber} episodes`}
-      accessibilityRole="button"
-      onPress={() => router.push(routes.seasonEpisodes(String(season.id)) as Href)}
-      style={({ pressed }) => pressed && styles.pressed}
-    >
-      <Card>
-        <Text style={styles.seasonTitle}>{season.title || `Season ${season.seasonNumber}`}</Text>
-        {season.releaseDate ? <Text style={styles.metadata}>{season.releaseDate}</Text> : null}
-        {season.overview ? (
-          <Text numberOfLines={3} style={styles.body}>
-            {season.overview}
-          </Text>
-        ) : null}
-      </Card>
-    </Pressable>
-  );
-}
-
-type DetailRowProps = {
-  label: string;
-  value?: number | string | null;
-};
-
-function DetailRow({ label, value }: DetailRowProps) {
-  return (
-    <View style={styles.detailRow}>
-      <Text style={styles.detailLabel}>{label}</Text>
-      <Text style={styles.detailValue}>{value || 'Not available'}</Text>
-    </View>
-  );
-}
-
 function formatSummary(series: SeriesDetailsDto) {
   return [series.releaseYear, series.status, series.network].filter(Boolean).join(' | ');
 }
@@ -227,47 +172,6 @@ const styles = StyleSheet.create({
   },
   actions: {
     gap: theme.spacing.sm,
-  },
-  poster: {
-    alignSelf: 'center',
-    backgroundColor: theme.colors.disabled,
-    borderRadius: theme.radius.md,
-    height: 390,
-    maxWidth: 260,
-    width: '100%',
-  },
-  posterPlaceholder: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: theme.spacing.lg,
-  },
-  placeholderText: {
-    color: theme.colors.textMuted,
-    fontSize: theme.fontSizes.md,
-    textAlign: 'center',
-  },
-  header: {
-    gap: theme.spacing.sm,
-  },
-  eyebrow: {
-    color: theme.colors.accent,
-    fontSize: theme.fontSizes.sm,
-    fontWeight: '700',
-    letterSpacing: 2,
-  },
-  title: {
-    color: theme.colors.text,
-    fontSize: theme.fontSizes.xxl,
-    fontWeight: '700',
-  },
-  metadata: {
-    color: theme.colors.textMuted,
-    fontSize: theme.fontSizes.md,
-  },
-  genres: {
-    color: theme.colors.accent,
-    fontSize: theme.fontSizes.md,
-    lineHeight: 22,
   },
   section: {
     gap: theme.spacing.md,
@@ -281,30 +185,5 @@ const styles = StyleSheet.create({
     color: theme.colors.textMuted,
     fontSize: theme.fontSizes.md,
     lineHeight: 24,
-  },
-  seasons: {
-    gap: theme.spacing.md,
-  },
-  seasonTitle: {
-    color: theme.colors.text,
-    fontSize: theme.fontSizes.lg,
-    fontWeight: '600',
-  },
-  detailRow: {
-    gap: theme.spacing.xs,
-  },
-  detailLabel: {
-    color: theme.colors.textMuted,
-    fontSize: theme.fontSizes.sm,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-  },
-  detailValue: {
-    color: theme.colors.text,
-    fontSize: theme.fontSizes.md,
-    lineHeight: 22,
-  },
-  pressed: {
-    opacity: 0.8,
   },
 });

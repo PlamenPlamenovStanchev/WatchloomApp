@@ -31,10 +31,10 @@ export function EpisodeList({ episodes }: EpisodeListProps) {
             {episode.overview || 'No description is available for this episode.'}
           </Text>
           <View style={styles.metadata}>
-            {episode.durationMinutes ? (
-              <Text style={styles.metadataText}>{episode.durationMinutes} min</Text>
-            ) : null}
-            {episode.airDate ? <Text style={styles.metadataText}>{episode.airDate}</Text> : null}
+            <Text style={styles.metadataText}>
+              Duration: {episode.durationMinutes ? `${episode.durationMinutes} min` : 'Unavailable'}
+            </Text>
+            <Text style={styles.metadataText}>Air date: {episode.airDate || 'Unavailable'}</Text>
           </View>
         </Card>
       ))}
