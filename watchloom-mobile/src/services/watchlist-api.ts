@@ -55,8 +55,12 @@ export function removeWatchlistItem(token: string, itemId: number | string) {
   return apiClient.delete<boolean>(watchlistItemPath(itemId), { token });
 }
 
-export function getPlannedWatchItems(token: string) {
-  return apiClient.get<PlannedWatchItemDto[]>('/api/watchlists/planned', { token });
+export async function getPlannedWatchItems(token: string) {
+  const items = await apiClient.get<PlannedWatchItemDto[]>('/api/watchlists/planned', { token });
+
+  return items
+    .filter((item) => Boolean(item.plannedWatchAt))
+    .sort((left, right) => getTimestamp(left.plannedWatchAt) - getTimestamp(right.plannedWatchAt));
 }
 
 function watchlistPath(watchlistId: number | string) {
@@ -65,4 +69,10 @@ function watchlistPath(watchlistId: number | string) {
 
 function watchlistItemPath(itemId: number | string) {
   return `/api/watchlist-items/${encodeURIComponent(String(itemId))}`;
+}
+
+function getTimestamp(value: string) {
+  const timestamp = new Date(value).getTime();
+
+  return Number.isNaN(timestamp) ? Number.POSITIVE_INFINITY : timestamp;
 }

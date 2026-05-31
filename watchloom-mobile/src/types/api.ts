@@ -112,6 +112,7 @@ export type WatchlistWithItemsDto = WatchlistDto & {
 };
 
 export type PlannedWatchItemDto = WatchlistItemWithMediaDto & {
+  plannedWatchAt: string;
   watchlist: {
     id: number;
     name: string;
