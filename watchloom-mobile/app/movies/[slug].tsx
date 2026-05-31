@@ -6,6 +6,7 @@ import { CastBlock } from '@/components/details/CastBlock';
 import { DetailInfoRow } from '@/components/details/DetailInfoRow';
 import { GenreChips } from '@/components/details/GenreChips';
 import { PosterHeader } from '@/components/details/PosterHeader';
+import { AddToWatchlistModal } from '@/components/watchlists/AddToWatchlistModal';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { ErrorState } from '@/components/ui/ErrorState';
@@ -21,11 +22,12 @@ import type { MovieDetailsDto } from '@/types/api';
 export default function MovieDetailsScreen() {
   const params = useLocalSearchParams<{ slug?: string | string[] }>();
   const slug = Array.isArray(params.slug) ? params.slug[0] : params.slug;
-  const { isAuthenticated } = useAuth();
+  const { accessToken, isAuthenticated } = useAuth();
   const [movie, setMovie] = useState<MovieDetailsDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [notFound, setNotFound] = useState(false);
+  const [watchlistModalVisible, setWatchlistModalVisible] = useState(false);
 
   const loadMovie = useCallback(async () => {
     if (!slug) {
@@ -134,8 +136,17 @@ export default function MovieDetailsScreen() {
         <CastBlock cast={movie.cast} />
       </Card>
 
-      {isAuthenticated ? (
-        <Button disabled onPress={() => undefined} title="Add to Watchlist" />
+      {isAuthenticated && accessToken ? (
+        <>
+          <Button onPress={() => setWatchlistModalVisible(true)} title="Add to Watchlist" />
+          <AddToWatchlistModal
+            mediaId={movie.id}
+            mediaType="movie"
+            onClose={() => setWatchlistModalVisible(false)}
+            token={accessToken}
+            visible={watchlistModalVisible}
+          />
+        </>
       ) : (
         <Card>
           <Text style={styles.body}>Log in to add this movie to your watchlist</Text>

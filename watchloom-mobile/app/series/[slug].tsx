@@ -7,6 +7,7 @@ import { DetailInfoRow } from '@/components/details/DetailInfoRow';
 import { GenreChips } from '@/components/details/GenreChips';
 import { PosterHeader } from '@/components/details/PosterHeader';
 import { SeasonList } from '@/components/details/SeasonList';
+import { AddToWatchlistModal } from '@/components/watchlists/AddToWatchlistModal';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { ErrorState } from '@/components/ui/ErrorState';
@@ -22,12 +23,13 @@ import type { SeasonDto, SeriesDetailsDto } from '@/types/api';
 export default function SeriesDetailsScreen() {
   const params = useLocalSearchParams<{ slug?: string | string[] }>();
   const slug = Array.isArray(params.slug) ? params.slug[0] : params.slug;
-  const { isAuthenticated } = useAuth();
+  const { accessToken, isAuthenticated } = useAuth();
   const [series, setSeries] = useState<SeriesDetailsDto | null>(null);
   const [seasons, setSeasons] = useState<SeasonDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [notFound, setNotFound] = useState(false);
+  const [watchlistModalVisible, setWatchlistModalVisible] = useState(false);
 
   const loadSeries = useCallback(async () => {
     if (!slug) {
@@ -146,8 +148,17 @@ export default function SeriesDetailsScreen() {
         <SeasonList seasons={seasons} />
       </View>
 
-      {isAuthenticated ? (
-        <Button disabled onPress={() => undefined} title="Add to Watchlist" />
+      {isAuthenticated && accessToken ? (
+        <>
+          <Button onPress={() => setWatchlistModalVisible(true)} title="Add to Watchlist" />
+          <AddToWatchlistModal
+            mediaId={series.id}
+            mediaType="series"
+            onClose={() => setWatchlistModalVisible(false)}
+            token={accessToken}
+            visible={watchlistModalVisible}
+          />
+        </>
       ) : (
         <Card>
           <Text style={styles.body}>Log in to add this series to your watchlist</Text>
