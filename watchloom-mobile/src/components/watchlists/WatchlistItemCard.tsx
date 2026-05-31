@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { router, type Href } from 'expo-router';
-import { Alert, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { RatingPicker } from '@/components/watchlists/RatingPicker';
 import { WatchStatusPicker } from '@/components/watchlists/WatchStatusPicker';
@@ -9,6 +9,7 @@ import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { routes } from '@/constants/routes';
 import { theme } from '@/constants/theme';
+import { confirmAction } from '@/lib/confirm';
 import type { UpdateWatchlistItemInput, WatchlistItemWithMediaDto, WatchStatus } from '@/types/api';
 
 type WatchlistItemCardProps = {
@@ -54,11 +55,16 @@ export function WatchlistItemCard({ item, onRemove, onUpdate }: WatchlistItemCar
     void save({ rating: nextRating });
   }
 
-  function confirmRemove() {
-    Alert.alert('Remove item?', 'Remove this title from the watchlist?', [
-      { style: 'cancel', text: 'Cancel' },
-      { onPress: () => void remove(), style: 'destructive', text: 'Remove' },
-    ]);
+  async function confirmRemove() {
+    const confirmed = await confirmAction({
+      confirmLabel: 'Remove',
+      message: 'Remove this title from the watchlist?',
+      title: 'Remove item?',
+    });
+
+    if (confirmed) {
+      await remove();
+    }
   }
 
   async function remove() {
@@ -127,7 +133,12 @@ export function WatchlistItemCard({ item, onRemove, onUpdate }: WatchlistItemCar
       ) : null}
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
-      <Button loading={removing} onPress={confirmRemove} title="Remove Item" variant="ghost" />
+      <Button
+        loading={removing}
+        onPress={() => void confirmRemove()}
+        title="Remove Item"
+        variant="ghost"
+      />
     </Card>
   );
 }

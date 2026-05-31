@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { router, type Href, useLocalSearchParams } from 'expo-router';
-import { Alert, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { WatchlistItemCard } from '@/components/watchlists/WatchlistItemCard';
 import { Button } from '@/components/ui/Button';
@@ -12,6 +12,7 @@ import { Screen } from '@/components/ui/Screen';
 import { routes } from '@/constants/routes';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/hooks/useAuth';
+import { confirmAction } from '@/lib/confirm';
 import {
   deleteWatchlist,
   getWatchlistById,
@@ -58,11 +59,16 @@ export default function WatchlistDetailsScreen() {
     void loadWatchlist();
   }, [loadWatchlist]);
 
-  function confirmDelete() {
-    Alert.alert('Delete watchlist?', 'This action cannot be undone.', [
-      { style: 'cancel', text: 'Cancel' },
-      { onPress: () => void handleDelete(), style: 'destructive', text: 'Delete' },
-    ]);
+  async function confirmDelete() {
+    const confirmed = await confirmAction({
+      confirmLabel: 'Delete',
+      message: 'This action cannot be undone.',
+      title: 'Delete watchlist?',
+    });
+
+    if (confirmed) {
+      await handleDelete();
+    }
   }
 
   async function handleDelete() {
@@ -176,7 +182,12 @@ export default function WatchlistDetailsScreen() {
           onPress={() => router.push(routes.editWatchlist(String(watchlist.id)) as Href)}
           title="Edit Watchlist"
         />
-        <Button loading={deleting} onPress={confirmDelete} title="Delete Watchlist" variant="secondary" />
+        <Button
+          loading={deleting}
+          onPress={() => void confirmDelete()}
+          title="Delete Watchlist"
+          variant="secondary"
+        />
       </View>
     </Screen>
   );
