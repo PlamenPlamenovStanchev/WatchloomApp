@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { router, type Href } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { WatchlistList } from '@/components/watchlists/WatchlistList';
+import { PlannedWatchList } from '@/components/planned/PlannedWatchList';
 import { Button } from '@/components/ui/Button';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { LoadingState } from '@/components/ui/LoadingState';
@@ -10,20 +10,20 @@ import { Screen } from '@/components/ui/Screen';
 import { routes } from '@/constants/routes';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/hooks/useAuth';
-import { getWatchlists } from '@/services/watchlist-api';
-import type { WatchlistSummaryDto } from '@/types/api';
+import { getPlannedWatchItems } from '@/services/watchlist-api';
+import type { PlannedWatchItemDto } from '@/types/api';
 
-export default function WatchlistsScreen() {
+export default function PlannedWatchingScreen() {
   const { accessToken, isAuthenticated, isLoading: authLoading } = useAuth();
-  const [watchlists, setWatchlists] = useState<WatchlistSummaryDto[]>([]);
+  const [items, setItems] = useState<PlannedWatchItemDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const loadWatchlists = useCallback(
+  const loadItems = useCallback(
     async (refresh = false) => {
       if (!accessToken) {
-        setWatchlists([]);
+        setItems([]);
         setLoading(false);
         setRefreshing(false);
         return;
@@ -38,9 +38,9 @@ export default function WatchlistsScreen() {
       setError(null);
 
       try {
-        setWatchlists(await getWatchlists(accessToken));
+        setItems(await getPlannedWatchItems(accessToken));
       } catch (loadError) {
-        setError(loadError instanceof Error ? loadError.message : 'Unable to load watchlists.');
+        setError(loadError instanceof Error ? loadError.message : 'Unable to load planned watching.');
       } finally {
         setLoading(false);
         setRefreshing(false);
@@ -52,8 +52,8 @@ export default function WatchlistsScreen() {
   useEffect(() => {
     // This effect starts the authenticated request; the helper owns its loading state.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    void loadWatchlists();
-  }, [loadWatchlists]);
+    void loadItems();
+  }, [loadItems]);
 
   if (authLoading) {
     return (
@@ -67,9 +67,9 @@ export default function WatchlistsScreen() {
     return (
       <Screen contentContainerStyle={styles.centeredContent}>
         <View style={styles.header}>
-          <Text style={styles.title}>Your watchlists</Text>
+          <Text style={styles.title}>Planned watching</Text>
           <Text style={styles.subtitle}>
-            Log in or create an account to organize movies and series you want to watch.
+            Log in or create an account to view your scheduled movies and series.
           </Text>
         </View>
         <View style={styles.actions}>
@@ -86,33 +86,25 @@ export default function WatchlistsScreen() {
 
   return (
     <Screen contentContainerStyle={styles.screen} scroll={false}>
+      <Button onPress={() => router.back()} title="Back" variant="ghost" />
       <View style={styles.header}>
-        <Text style={styles.title}>Your watchlists</Text>
-        <Text style={styles.subtitle}>Keep your movies and series organized.</Text>
+        <Text style={styles.title}>Planned watching</Text>
+        <Text style={styles.subtitle}>Your upcoming movies and series, ordered by date.</Text>
       </View>
-      <Button
-        onPress={() => router.push(routes.newWatchlist as Href)}
-        title="Create Watchlist"
-      />
-      <Button
-        onPress={() => router.push(routes.planned as Href)}
-        title="Planned Watching"
-        variant="secondary"
-      />
       <View style={styles.list}>
         {loading ? (
-          <LoadingState message="Loading watchlists..." />
+          <LoadingState message="Loading planned watching..." />
         ) : error ? (
           <ErrorState
             message={error}
-            retryAction={<Button onPress={() => void loadWatchlists()} title="Retry" />}
-            title="Could not load watchlists"
+            retryAction={<Button onPress={() => void loadItems()} title="Retry" />}
+            title="Could not load planned watching"
           />
         ) : (
-          <WatchlistList
-            onRefresh={() => void loadWatchlists(true)}
+          <PlannedWatchList
+            items={items}
+            onRefresh={() => void loadItems(true)}
             refreshing={refreshing}
-            watchlists={watchlists}
           />
         )}
       </View>

@@ -11,6 +11,7 @@ export const routes = {
     profile: '/(tabs)/profile',
   },
   movieDetails: (slug: string) => `/movies/${slug}`,
+  planned: '/planned',
   seriesDetails: (slug: string) => `/series/${slug}`,
   seasonEpisodes: (seasonId: string) => `/series/seasons/${seasonId}`,
   newWatchlist: '/watchlists/new',
