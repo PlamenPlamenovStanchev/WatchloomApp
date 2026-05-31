@@ -2,9 +2,11 @@ import type {
   AuthUserDto,
   CatalogSearchQueryInput,
   EpisodeDto,
+  GenreDto,
   MovieDetailsDto,
   MovieListItemDto,
   PaginatedResponse,
+  SeasonDto,
   SeriesDetailsDto,
   SeriesListItemDto,
   WatchlistDto,
@@ -14,6 +16,7 @@ export type {
   AuthUserDto,
   EpisodeDto,
   FavouriteDto,
+  GenreDto,
   MediaType,
   MovieDetailsDto,
   MovieListItemDto,
@@ -35,6 +38,15 @@ export type CatalogQueryParams = CatalogSearchQueryInput;
 export type SeasonEpisodes = {
   seasonId: number;
   items: EpisodeDto[];
+};
+
+export type SeriesSeasonsResponse = {
+  series: SeriesDetailsDto;
+  items: SeasonDto[];
+};
+
+export type GenresResponse = {
+  items: GenreDto[];
 };
 
 export type LoginResponse = {
