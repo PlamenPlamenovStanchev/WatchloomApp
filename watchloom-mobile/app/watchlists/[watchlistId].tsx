@@ -2,16 +2,23 @@ import { useCallback, useEffect, useState } from 'react';
 import { router, type Href, useLocalSearchParams } from 'expo-router';
 import { Alert, StyleSheet, Text, View } from 'react-native';
 
+import { WatchlistItemCard } from '@/components/watchlists/WatchlistItemCard';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { LoadingState } from '@/components/ui/LoadingState';
 import { Screen } from '@/components/ui/Screen';
 import { routes } from '@/constants/routes';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/hooks/useAuth';
-import { deleteWatchlist, getWatchlistById } from '@/services/watchlist-api';
-import type { WatchlistWithItemsDto } from '@/types/api';
+import {
+  deleteWatchlist,
+  getWatchlistById,
+  removeWatchlistItem,
+  updateWatchlistItem,
+} from '@/services/watchlist-api';
+import type { UpdateWatchlistItemInput, WatchlistWithItemsDto } from '@/types/api';
 
 export default function WatchlistDetailsScreen() {
   const params = useLocalSearchParams<{ watchlistId?: string | string[] }>();
@@ -76,6 +83,43 @@ export default function WatchlistDetailsScreen() {
     }
   }
 
+  async function handleUpdateItem(itemId: number, input: UpdateWatchlistItemInput) {
+    if (!accessToken) {
+      router.replace(routes.auth.login as Href);
+      return;
+    }
+
+    const updatedItem = await updateWatchlistItem(accessToken, itemId, input);
+
+    setWatchlist((current) =>
+      current
+        ? {
+            ...current,
+            items: current.items.map((item) =>
+              item.id === updatedItem.id ? { ...item, ...updatedItem } : item,
+            ),
+          }
+        : current,
+    );
+  }
+
+  async function handleRemoveItem(itemId: number) {
+    if (!accessToken) {
+      router.replace(routes.auth.login as Href);
+      return;
+    }
+
+    await removeWatchlistItem(accessToken, itemId);
+    setWatchlist((current) =>
+      current
+        ? {
+            ...current,
+            items: current.items.filter((item) => item.id !== itemId),
+          }
+        : current,
+    );
+  }
+
   if (authLoading || !isAuthenticated || !accessToken || loading) {
     return (
       <Screen contentContainerStyle={styles.centeredContent}>
@@ -107,8 +151,25 @@ export default function WatchlistDetailsScreen() {
         <Text style={styles.count}>
           {watchlist.items.length === 1 ? '1 item' : `${watchlist.items.length} items`}
         </Text>
-        <Text style={styles.subtitle}>Item management will be added separately.</Text>
       </Card>
+      <View style={styles.items}>
+        <Text style={styles.sectionTitle}>Items</Text>
+        {watchlist.items.length > 0 ? (
+          watchlist.items.map((item) => (
+            <WatchlistItemCard
+              item={item}
+              key={item.id}
+              onRemove={handleRemoveItem}
+              onUpdate={handleUpdateItem}
+            />
+          ))
+        ) : (
+          <EmptyState
+            message="Add movies or series from the catalog to start building this watchlist."
+            title="No items yet"
+          />
+        )}
+      </View>
       {error ? <Text style={styles.error}>{error}</Text> : null}
       <View style={styles.actions}>
         <Button
@@ -146,6 +207,14 @@ const styles = StyleSheet.create({
   },
   actions: {
     gap: theme.spacing.md,
+  },
+  items: {
+    gap: theme.spacing.md,
+  },
+  sectionTitle: {
+    color: theme.colors.text,
+    fontSize: theme.fontSizes.lg,
+    fontWeight: '600',
   },
   error: {
     color: theme.colors.danger,
