@@ -10,6 +10,7 @@ import type {
   SeriesDetailsDto,
   SeriesListItemDto,
   WatchlistDto,
+  WatchlistItemDto,
 } from 'watchloom-shared';
 
 export type {
@@ -72,7 +73,50 @@ export type CreateWatchlistInput = {
   description?: string | null;
 };
 
-export type WatchlistResponse = WatchlistDto;
+export type UpdateWatchlistInput = {
+  name?: string;
+  description?: string | null;
+};
+
+export type AddWatchlistItemInput = {
+  mediaType: 'movie' | 'series';
+  movieId?: number | null;
+  seriesId?: number | null;
+  status: 'watched' | 'watching' | 'to_watch';
+  plannedWatchAt?: string | null;
+  rating?: number | null;
+  notes?: string | null;
+};
+
+export type UpdateWatchlistItemInput = {
+  status?: 'watched' | 'watching' | 'to_watch';
+  plannedWatchAt?: string | null;
+  rating?: number | null;
+  notes?: string | null;
+};
+
+export type WatchlistSummaryDto = WatchlistDto & {
+  itemCount: number;
+};
+
+export type WatchlistItemWithMediaDto = WatchlistItemDto & {
+  media: {
+    title: string;
+    slug: string;
+    posterUrl?: string | null;
+  } | null;
+};
+
+export type WatchlistWithItemsDto = WatchlistDto & {
+  items: WatchlistItemWithMediaDto[];
+};
+
+export type PlannedWatchItemDto = WatchlistItemWithMediaDto & {
+  watchlist: {
+    id: number;
+    name: string;
+  };
+};
 
 export type MovieListResponse = PaginatedResponse<MovieListItemDto>;
 
