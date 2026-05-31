@@ -90,7 +90,10 @@ export default function WatchlistsScreen() {
         <Text style={styles.title}>Your watchlists</Text>
         <Text style={styles.subtitle}>Keep your movies and series organized.</Text>
       </View>
-      <Button disabled title="Create Watchlist" />
+      <Button
+        onPress={() => router.push(routes.newWatchlist as Href)}
+        title="Create Watchlist"
+      />
       <View style={styles.list}>
         {loading ? (
           <LoadingState message="Loading watchlists..." />

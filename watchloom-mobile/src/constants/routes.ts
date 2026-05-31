@@ -13,5 +13,7 @@ export const routes = {
   movieDetails: (slug: string) => `/movies/${slug}`,
   seriesDetails: (slug: string) => `/series/${slug}`,
   seasonEpisodes: (seasonId: string) => `/series/seasons/${seasonId}`,
+  newWatchlist: '/watchlists/new',
   watchlistDetails: (watchlistId: string) => `/watchlists/${watchlistId}`,
+  editWatchlist: (watchlistId: string) => `/watchlists/${watchlistId}/edit`,
 } as const;
