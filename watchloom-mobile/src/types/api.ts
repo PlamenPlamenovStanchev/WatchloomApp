@@ -6,7 +6,7 @@ import type {
   MovieDetailsDto,
   MovieListItemDto,
   PaginatedResponse,
-  SeasonDto,
+  SeasonDto as SharedSeasonDto,
   SeriesDetailsDto,
   SeriesListItemDto,
   WatchlistDto,
@@ -23,7 +23,6 @@ export type {
   PaginatedResponse,
   PaginationMeta,
   ReviewDto,
-  SeasonDto,
   SeriesDetailsDto,
   SeriesListItemDto,
   SeriesStatus,
@@ -34,6 +33,11 @@ export type {
 } from 'watchloom-shared';
 
 export type CatalogQueryParams = CatalogSearchQueryInput;
+
+export type SeasonDto = SharedSeasonDto & {
+  posterUrl?: string | null;
+  releaseYear?: number | null;
+};
 
 export type SeasonEpisodes = {
   seasonId: number;

@@ -1,5 +1,5 @@
 import { router, type Href } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -38,10 +38,17 @@ export function SeasonList({ onPressSeason, seasons }: SeasonListProps) {
           }}
           style={({ pressed }) => pressed && styles.pressed}
         >
-          <Card>
-            <Text style={styles.title}>{season.title || `Season ${season.seasonNumber}`}</Text>
-            <Text style={styles.metadata}>{season.releaseDate || 'Release date unavailable'}</Text>
-            <Text style={styles.body}>{season.overview || 'Description unavailable'}</Text>
+          <Card style={styles.card}>
+            {season.posterUrl ? (
+              <Image source={{ uri: season.posterUrl }} style={styles.poster} />
+            ) : null}
+            <View style={styles.content}>
+              <Text style={styles.title}>{season.title || `Season ${season.seasonNumber}`}</Text>
+              {season.releaseYear || season.releaseDate ? (
+                <Text style={styles.metadata}>{season.releaseYear || season.releaseDate}</Text>
+              ) : null}
+              {season.overview ? <Text style={styles.body}>{season.overview}</Text> : null}
+            </View>
           </Card>
         </Pressable>
       ))}
@@ -52,6 +59,18 @@ export function SeasonList({ onPressSeason, seasons }: SeasonListProps) {
 const styles = StyleSheet.create({
   list: {
     gap: theme.spacing.md,
+  },
+  card: {
+    flexDirection: 'row',
+  },
+  poster: {
+    aspectRatio: 2 / 3,
+    borderRadius: theme.radius.sm,
+    width: 72,
+  },
+  content: {
+    flex: 1,
+    gap: theme.spacing.sm,
   },
   title: {
     color: theme.colors.text,
