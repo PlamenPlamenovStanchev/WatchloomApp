@@ -13,6 +13,7 @@ import { login as loginRequest, me, register as registerRequest } from '@/servic
 import type { AuthUserDto, RegisterInput } from '@/types/api';
 
 type AuthContextValue = {
+  accessToken: string | null;
   clearError: () => void;
   error: string | null;
   isAuthenticated: boolean;
@@ -185,6 +186,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
   const value = useMemo<AuthContextValue>(
     () => ({
+      accessToken,
       clearError,
       error,
       isAuthenticated: Boolean(accessToken && user),
