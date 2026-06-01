@@ -18,7 +18,7 @@ export function WatchlistCard({ watchlist }: WatchlistCardProps) {
       accessibilityLabel={`Open ${watchlist.name}`}
       accessibilityRole="button"
       onPress={() => router.push(routes.watchlistDetails(String(watchlist.id)) as Href)}
-      style={({ pressed }) => pressed && styles.pressed}
+      style={({ pressed }: { pressed: boolean }: { pressed: boolean }) => pressed && styles.pressed}
     >
       <Card>
         <Text numberOfLines={2} style={styles.title}>{watchlist.name}</Text>

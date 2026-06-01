@@ -36,7 +36,7 @@ export function SeasonList({ onPressSeason, seasons }: SeasonListProps) {
               router.push(routes.seasonEpisodes(String(season.id)) as Href);
             }
           }}
-          style={({ pressed }) => pressed && styles.pressed}
+          style={({ pressed }: { pressed: boolean }) => pressed && styles.pressed}
         >
           <Card style={styles.card}>
             {season.posterUrl ? (

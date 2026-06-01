@@ -90,7 +90,7 @@ export function PlannedWatchItemCard({ item }: PlannedWatchItemCardProps) {
             router.push(detailsRoute as Href);
           }
         }}
-        style={({ pressed }) => [styles.summary, pressed && styles.pressed]}
+        style={({ pressed }: { pressed: boolean }) => [styles.summary, pressed && styles.pressed]}
       >
         {item.media?.posterUrl ? (
           <Image source={{ uri: item.media.posterUrl }} style={styles.poster} />

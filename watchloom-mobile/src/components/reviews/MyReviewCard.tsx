@@ -30,7 +30,7 @@ export function MyReviewCard({ onDelete, review }: MyReviewCardProps) {
             router.push(detailsRoute as Href);
           }
         }}
-        style={({ pressed }) => pressed && styles.pressed}
+        style={({ pressed }: { pressed: boolean }) => pressed && styles.pressed}
       >
         <Text style={styles.type}>{review.mediaType.toUpperCase()}</Text>
         <Text numberOfLines={2} style={styles.mediaTitle}>{review.media?.title || 'Unavailable title'}</Text>

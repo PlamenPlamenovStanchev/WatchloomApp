@@ -17,7 +17,7 @@ export function SeriesCard({ series }: SeriesCardProps) {
       accessibilityLabel={`View ${series.title}`}
       accessibilityRole="button"
       onPress={() => router.push(`/series/${encodeURIComponent(series.slug)}`)}
-      style={({ pressed }) => pressed && styles.pressed}
+      style={({ pressed }: { pressed: boolean }) => pressed && styles.pressed}
     >
       <Card style={styles.card}>
         {series.posterUrl ? (

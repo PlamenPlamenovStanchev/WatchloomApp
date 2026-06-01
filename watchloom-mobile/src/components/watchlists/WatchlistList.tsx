@@ -17,7 +17,7 @@ export function WatchlistList({ onRefresh, refreshing, watchlists }: WatchlistLi
       contentContainerStyle={[styles.content, watchlists.length === 0 && styles.empty]}
       data={watchlists}
       ItemSeparatorComponent={ItemSeparator}
-      keyExtractor={(watchlist) => String(watchlist.id)}
+      keyExtractor={(watchlist: WatchlistSummaryDto) => String(watchlist.id)}
       ListEmptyComponent={
         <EmptyState
           message="Create a watchlist to start organizing your movies and series."
@@ -26,7 +26,7 @@ export function WatchlistList({ onRefresh, refreshing, watchlists }: WatchlistLi
       }
       onRefresh={onRefresh}
       refreshing={refreshing}
-      renderItem={({ item }) => <WatchlistCard watchlist={item} />}
+      renderItem={({ item }: { item: WatchlistSummaryDto }) => <WatchlistCard watchlist={item} />}
     />
   );
 }

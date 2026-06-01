@@ -20,7 +20,7 @@ export function MovieCard({ movie }: MovieCardProps) {
       accessibilityLabel={`View ${movie.title}`}
       accessibilityRole="button"
       onPress={() => router.push(`/movies/${encodeURIComponent(movie.slug)}`)}
-      style={({ pressed }) => pressed && styles.pressed}
+      style={({ pressed }: { pressed: boolean }) => pressed && styles.pressed}
     >
       <Card style={styles.card}>
         {movie.posterUrl ? (
