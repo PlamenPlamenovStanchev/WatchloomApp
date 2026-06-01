@@ -83,7 +83,7 @@ function getErrorMessage(body: unknown, fallback: string) {
 function buildUrl(path: string, query?: QueryParams) {
   if (!API_BASE_URL) {
     throw new ApiClientError(
-      'EXPO_PUBLIC_API_BASE_URL is not configured. Set it before making API requests.',
+      'EXPO_PUBLIC_API_BASE_URL is missing. Please create a .env file and set EXPO_PUBLIC_API_BASE_URL appropriately for your environment.',
       0,
     );
   }
@@ -135,7 +135,11 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
       throw error;
     }
 
-    throw new ApiClientError('Unable to reach the server.', 0, error);
+    throw new ApiClientError(
+      'Unable to reach the server. Please check your internet connection or verify that the backend is running.',
+      0,
+      error,
+    );
   }
 
   const responseBody = await parseJson(response);
