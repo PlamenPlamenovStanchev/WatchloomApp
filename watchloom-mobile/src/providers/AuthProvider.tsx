@@ -7,7 +7,7 @@ import {
   type PropsWithChildren,
 } from 'react';
 
-import { ApiClientError } from '@/lib/api-client';
+import { ApiClientError, setUnauthorizedHandler } from '@/lib/api-client';
 import { deleteAccessToken, getAccessToken, saveAccessToken } from '@/lib/auth-storage';
 import { login as loginRequest, me, register as registerRequest } from '@/services/auth-api';
 import type { AuthUserDto, RegisterInput } from '@/types/api';
@@ -17,6 +17,7 @@ type AuthContextValue = {
   clearError: () => void;
   error: string | null;
   isAuthenticated: boolean;
+  isInitialized: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -44,6 +45,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const [user, setUser] = useState<AuthUserDto | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isInitialized, setIsInitialized] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const clearError = useCallback(() => {
@@ -90,6 +92,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
         }
       } finally {
         if (isActive) {
+          setIsInitialized(true);
           setIsLoading(false);
         }
       }
@@ -101,6 +104,21 @@ export function AuthProvider({ children }: PropsWithChildren) {
       isActive = false;
     };
   }, []);
+
+  useEffect(() => {
+    setUnauthorizedHandler(async (rejectedToken) => {
+      if (rejectedToken !== accessToken) {
+        return;
+      }
+
+      await deleteAccessToken().catch(() => undefined);
+      clearSession();
+    });
+
+    return () => {
+      setUnauthorizedHandler();
+    };
+  }, [accessToken, clearSession]);
 
   const login = useCallback(async (email: string, password: string) => {
     setIsLoading(true);
@@ -190,6 +208,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
       clearError,
       error,
       isAuthenticated: Boolean(accessToken && user),
+      isInitialized,
       isLoading,
       login,
       logout,
@@ -197,7 +216,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
       register,
       user,
     }),
-    [accessToken, clearError, error, isLoading, login, logout, refreshUser, register, user],
+    [accessToken, clearError, error, isInitialized, isLoading, login, logout, refreshUser, register, user],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

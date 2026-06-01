@@ -9,24 +9,18 @@ import { LoadingState } from '@/components/ui/LoadingState';
 import { Screen } from '@/components/ui/Screen';
 import { routes } from '@/constants/routes';
 import { theme } from '@/constants/theme';
-import { useAuth } from '@/hooks/useAuth';
+import { useRequireAuth } from '@/hooks/useRequireAuth';
 import { getWatchlistById, updateWatchlist } from '@/services/watchlist-api';
 import type { WatchlistWithItemsDto } from '@/types/api';
 
 export default function EditWatchlistScreen() {
   const params = useLocalSearchParams<{ watchlistId?: string | string[] }>();
   const watchlistId = Array.isArray(params.watchlistId) ? params.watchlistId[0] : params.watchlistId;
-  const { accessToken, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { accessToken, isAuthenticated, isInitialized, isLoading: authLoading } = useRequireAuth();
   const [watchlist, setWatchlist] = useState<WatchlistWithItemsDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      router.replace(routes.auth.login as Href);
-    }
-  }, [authLoading, isAuthenticated]);
 
   const loadWatchlist = useCallback(async () => {
     if (!accessToken || !watchlistId) {
@@ -70,7 +64,7 @@ export default function EditWatchlistScreen() {
     }
   }
 
-  if (authLoading || !isAuthenticated || !accessToken || loading) {
+  if (!isInitialized || authLoading || !isAuthenticated || !accessToken || loading) {
     return (
       <Screen contentContainerStyle={styles.centeredContent}>
         <LoadingState message="Loading watchlist..." />

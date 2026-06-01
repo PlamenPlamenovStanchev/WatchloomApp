@@ -4,6 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { LoadingState } from '@/components/ui/LoadingState';
 import { Screen } from '@/components/ui/Screen';
 import { routes } from '@/constants/routes';
 import { theme } from '@/constants/theme';
@@ -32,7 +33,7 @@ function validate(email: string, password: string) {
 }
 
 export default function LoginScreen() {
-  const { clearError, error, isAuthenticated, isLoading, login } = useAuth();
+  const { clearError, error, isAuthenticated, isInitialized, isLoading, login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
@@ -59,6 +60,14 @@ export default function LoginScreen() {
     } catch {
       // AuthProvider exposes the API error for display.
     }
+  }
+
+  if (!isInitialized) {
+    return (
+      <Screen contentContainerStyle={styles.content}>
+        <LoadingState message="Loading your account..." />
+      </Screen>
+    );
   }
 
   return (

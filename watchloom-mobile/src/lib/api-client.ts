@@ -25,6 +25,10 @@ type RequestOptions = {
 
 type MethodOptions = Omit<RequestOptions, 'method'>;
 
+type UnauthorizedHandler = (token: string) => void | Promise<void>;
+
+let unauthorizedHandler: UnauthorizedHandler | undefined;
+
 export class ApiClientError extends Error {
   constructor(
     message: string,
@@ -34,6 +38,10 @@ export class ApiClientError extends Error {
     super(message);
     this.name = 'ApiClientError';
   }
+}
+
+export function setUnauthorizedHandler(handler?: UnauthorizedHandler) {
+  unauthorizedHandler = handler;
 }
 
 export function buildQueryString(params?: QueryParams) {
@@ -139,6 +147,10 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
       'success' in responseBody &&
       responseBody.success === false)
   ) {
+    if (token && (response.status === 401 || response.status === 403)) {
+      void unauthorizedHandler?.(token);
+    }
+
     throw new ApiClientError(
       getErrorMessage(responseBody, `Request failed with status ${response.status}.`),
       response.status,

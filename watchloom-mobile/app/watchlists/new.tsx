@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { router, type Href } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 
@@ -8,19 +8,13 @@ import { LoadingState } from '@/components/ui/LoadingState';
 import { Screen } from '@/components/ui/Screen';
 import { routes } from '@/constants/routes';
 import { theme } from '@/constants/theme';
-import { useAuth } from '@/hooks/useAuth';
+import { useRequireAuth } from '@/hooks/useRequireAuth';
 import { createWatchlist } from '@/services/watchlist-api';
 
 export default function NewWatchlistScreen() {
-  const { accessToken, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { accessToken, isAuthenticated, isInitialized, isLoading: authLoading } = useRequireAuth();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      router.replace(routes.auth.login as Href);
-    }
-  }, [authLoading, isAuthenticated]);
 
   async function handleSubmit(input: { name: string; description?: string | null }) {
     if (!accessToken) {
@@ -41,7 +35,7 @@ export default function NewWatchlistScreen() {
     }
   }
 
-  if (authLoading || !isAuthenticated || !accessToken) {
+  if (!isInitialized || authLoading || !isAuthenticated || !accessToken) {
     return (
       <Screen contentContainerStyle={styles.centeredContent}>
         <LoadingState message="Loading your account..." />
