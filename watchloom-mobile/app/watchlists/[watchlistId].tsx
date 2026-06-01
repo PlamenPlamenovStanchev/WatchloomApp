@@ -14,6 +14,10 @@ import { theme } from '@/constants/theme';
 import { useAuth } from '@/hooks/useAuth';
 import { confirmAction } from '@/lib/confirm';
 import {
+  cancelPlannedItemReminder,
+  rescheduleKnownPlannedItemReminder,
+} from '@/lib/planned-notifications';
+import {
   deleteWatchlist,
   getWatchlistById,
   removeWatchlistItem,
@@ -81,6 +85,10 @@ export default function WatchlistDetailsScreen() {
 
     try {
       await deleteWatchlist(accessToken, watchlistId);
+      await Promise.all(
+        watchlist?.items.map((item) => cancelPlannedItemReminder(item.id).catch(() => undefined)) ??
+          [],
+      );
       router.replace(routes.tabs.watchlists as Href);
     } catch (deleteError) {
       setError(deleteError instanceof Error ? deleteError.message : 'Unable to delete watchlist.');
@@ -96,6 +104,13 @@ export default function WatchlistDetailsScreen() {
     }
 
     const updatedItem = await updateWatchlistItem(accessToken, itemId, input);
+    const currentItem = watchlist?.items.find((item) => item.id === updatedItem.id);
+
+    if (currentItem) {
+      await rescheduleKnownPlannedItemReminder({ ...currentItem, ...updatedItem }).catch(
+        () => undefined,
+      );
+    }
 
     setWatchlist((current) =>
       current
@@ -116,6 +131,7 @@ export default function WatchlistDetailsScreen() {
     }
 
     await removeWatchlistItem(accessToken, itemId);
+    await cancelPlannedItemReminder(itemId).catch(() => undefined);
     setWatchlist((current) =>
       current
         ? {

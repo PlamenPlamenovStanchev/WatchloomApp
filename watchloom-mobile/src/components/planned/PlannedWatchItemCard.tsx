@@ -1,9 +1,12 @@
 import { router, type Href } from 'expo-router';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Alert, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { routes } from '@/constants/routes';
 import { theme } from '@/constants/theme';
+import { schedulePlannedItemReminder } from '@/lib/planned-notifications';
 import type { PlannedWatchItemDto } from '@/types/api';
 
 type PlannedWatchItemCardProps = {
@@ -11,6 +14,7 @@ type PlannedWatchItemCardProps = {
 };
 
 export function PlannedWatchItemCard({ item }: PlannedWatchItemCardProps) {
+  const [scheduling, setScheduling] = useState(false);
   const detailsRoute =
     item.media && item.mediaType === 'movie'
       ? routes.movieDetails(item.media.slug)
@@ -18,18 +22,39 @@ export function PlannedWatchItemCard({ item }: PlannedWatchItemCardProps) {
         ? routes.seriesDetails(item.media.slug)
         : undefined;
 
+  async function scheduleReminder() {
+    setScheduling(true);
+
+    try {
+      const result = await schedulePlannedItemReminder(item);
+      Alert.alert(
+        result === 'scheduled' ? 'Reminder scheduled' : 'Reminder already scheduled',
+        result === 'scheduled'
+          ? `We will remind you to watch ${item.media?.title || 'this title'}.`
+          : 'A reminder is already set for this planned watch time.',
+      );
+    } catch (error) {
+      Alert.alert(
+        'Could not schedule reminder',
+        error instanceof Error ? error.message : 'Please try again.',
+      );
+    } finally {
+      setScheduling(false);
+    }
+  }
+
   return (
-    <Pressable
-      accessibilityRole={detailsRoute ? 'button' : undefined}
-      disabled={!detailsRoute}
-      onPress={() => {
-        if (detailsRoute) {
-          router.push(detailsRoute as Href);
-        }
-      }}
-      style={({ pressed }) => pressed && styles.pressed}
-    >
-      <Card style={styles.card}>
+    <Card style={styles.card}>
+      <Pressable
+        accessibilityRole={detailsRoute ? 'button' : undefined}
+        disabled={!detailsRoute}
+        onPress={() => {
+          if (detailsRoute) {
+            router.push(detailsRoute as Href);
+          }
+        }}
+        style={({ pressed }) => [styles.summary, pressed && styles.pressed]}
+      >
         {item.media?.posterUrl ? (
           <Image source={{ uri: item.media.posterUrl }} style={styles.poster} />
         ) : (
@@ -44,8 +69,16 @@ export function PlannedWatchItemCard({ item }: PlannedWatchItemCardProps) {
           <Text style={styles.metadata}>Planned: {formatDate(item.plannedWatchAt)}</Text>
           <Text style={styles.watchlist}>Watchlist: {item.watchlist.name}</Text>
         </View>
-      </Card>
-    </Pressable>
+      </Pressable>
+      <Button
+        loading={scheduling}
+        onPress={() => {
+          void scheduleReminder();
+        }}
+        title="Remind me"
+        variant="secondary"
+      />
+    </Card>
   );
 }
 
@@ -61,7 +94,11 @@ function formatDate(value: string) {
 
 const styles = StyleSheet.create({
   card: {
+    gap: theme.spacing.md,
+  },
+  summary: {
     flexDirection: 'row',
+    gap: theme.spacing.md,
   },
   poster: {
     aspectRatio: 2 / 3,
