@@ -11,6 +11,7 @@ import { routes } from '@/constants/routes';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/hooks/useAuth';
 import { confirmAction } from '@/lib/confirm';
+import { getUserFriendlyError } from '@/lib/errors';
 import { showMessage } from '@/lib/message';
 import { deleteReview, getMyReviews, type ReviewWithMediaDto } from '@/services/review-api';
 
@@ -41,7 +42,7 @@ export default function MyReviewsScreen() {
       try {
         setReviews(await getMyReviews(accessToken));
       } catch (loadError) {
-        setError(loadError instanceof Error ? loadError.message : 'Unable to load reviews.');
+        setError(getUserFriendlyError(loadError, 'Unable to load reviews. Please try again.'));
       } finally {
         setLoading(false);
         setRefreshing(false);
@@ -77,7 +78,7 @@ export default function MyReviewsScreen() {
       setReviews((current) => current.filter((review) => review.id !== reviewId));
       showMessage('Review deleted', 'Your review has been removed.');
     } catch (deleteError) {
-      showMessage('Could not delete review', deleteError instanceof Error ? deleteError.message : 'Please try again.');
+      showMessage('Could not delete review', getUserFriendlyError(deleteError, 'Please try again.'));
     }
   }
 

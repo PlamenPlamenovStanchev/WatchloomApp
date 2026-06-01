@@ -10,6 +10,7 @@ import { Screen } from '@/components/ui/Screen';
 import { routes } from '@/constants/routes';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/hooks/useAuth';
+import { getUserFriendlyError } from '@/lib/errors';
 import { getPlannedWatchItems } from '@/services/watchlist-api';
 import type { PlannedWatchItemDto } from '@/types/api';
 
@@ -40,7 +41,7 @@ export default function PlannedWatchingScreen() {
       try {
         setItems(await getPlannedWatchItems(accessToken));
       } catch (loadError) {
-        setError(loadError instanceof Error ? loadError.message : 'Unable to load planned watching.');
+        setError(getUserFriendlyError(loadError, 'Unable to load planned watching. Please try again.'));
       } finally {
         setLoading(false);
         setRefreshing(false);

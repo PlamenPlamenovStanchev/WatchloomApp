@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { router, type Href, useLocalSearchParams } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
+import { RefreshControl, StyleSheet, Text, View } from 'react-native';
 
 import { CastBlock } from '@/components/details/CastBlock';
 import { DetailInfoRow } from '@/components/details/DetailInfoRow';
@@ -18,6 +18,7 @@ import { routes } from '@/constants/routes';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/hooks/useAuth';
 import { ApiClientError } from '@/lib/api-client';
+import { getUserFriendlyError } from '@/lib/errors';
 import { getMovieBySlug } from '@/services/catalog-api';
 import type { MovieDetailsDto } from '@/types/api';
 
@@ -27,11 +28,12 @@ export default function MovieDetailsScreen() {
   const { accessToken, isAuthenticated } = useAuth();
   const [movie, setMovie] = useState<MovieDetailsDto | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [watchlistModalVisible, setWatchlistModalVisible] = useState(false);
 
-  const loadMovie = useCallback(async () => {
+  const loadMovie = useCallback(async (refresh = false) => {
     if (!slug) {
       setMovie(null);
       setNotFound(true);
@@ -39,7 +41,11 @@ export default function MovieDetailsScreen() {
       return;
     }
 
-    setLoading(true);
+    if (refresh) {
+      setRefreshing(true);
+    } else {
+      setLoading(true);
+    }
     setError(null);
     setNotFound(false);
 
@@ -51,10 +57,11 @@ export default function MovieDetailsScreen() {
       if (loadError instanceof ApiClientError && loadError.status === 404) {
         setNotFound(true);
       } else {
-        setError(loadError instanceof Error ? loadError.message : 'Unable to load this movie.');
+        setError(getUserFriendlyError(loadError, 'Unable to load this movie. Please try again.'));
       }
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }, [slug]);
 
@@ -110,7 +117,11 @@ export default function MovieDetailsScreen() {
   }
 
   return (
-    <Screen>
+    <Screen
+      scrollViewProps={{
+        refreshControl: <RefreshControl onRefresh={() => void loadMovie(true)} refreshing={refreshing} />,
+      }}
+    >
       <Button onPress={goBack} title="Back" variant="ghost" />
 
       <PosterHeader

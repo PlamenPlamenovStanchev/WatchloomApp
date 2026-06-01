@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { router, type Href, useLocalSearchParams } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
+import { RefreshControl, StyleSheet, Text, View } from 'react-native';
 
 import { EpisodeList } from '@/components/details/EpisodeList';
 import { Button } from '@/components/ui/Button';
@@ -10,6 +10,7 @@ import { Screen } from '@/components/ui/Screen';
 import { routes } from '@/constants/routes';
 import { theme } from '@/constants/theme';
 import { ApiClientError } from '@/lib/api-client';
+import { getUserFriendlyError } from '@/lib/errors';
 import { getSeasonEpisodes } from '@/services/catalog-api';
 import type { EpisodeDto } from '@/types/api';
 
@@ -18,10 +19,11 @@ export default function SeasonEpisodesScreen() {
   const seasonId = Array.isArray(params.seasonId) ? params.seasonId[0] : params.seasonId;
   const [episodes, setEpisodes] = useState<EpisodeDto[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notFound, setNotFound] = useState(false);
 
-  const loadEpisodes = useCallback(async () => {
+  const loadEpisodes = useCallback(async (refresh = false) => {
     if (!seasonId) {
       setEpisodes([]);
       setNotFound(true);
@@ -29,7 +31,11 @@ export default function SeasonEpisodesScreen() {
       return;
     }
 
-    setLoading(true);
+    if (refresh) {
+      setRefreshing(true);
+    } else {
+      setLoading(true);
+    }
     setError(null);
     setNotFound(false);
 
@@ -42,10 +48,11 @@ export default function SeasonEpisodesScreen() {
       if (loadError instanceof ApiClientError && loadError.status === 404) {
         setNotFound(true);
       } else {
-        setError(loadError instanceof Error ? loadError.message : 'Unable to load episodes.');
+        setError(getUserFriendlyError(loadError, 'Unable to load episodes. Please try again.'));
       }
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }, [seasonId]);
 
@@ -101,7 +108,11 @@ export default function SeasonEpisodesScreen() {
   }
 
   return (
-    <Screen>
+    <Screen
+      scrollViewProps={{
+        refreshControl: <RefreshControl onRefresh={() => void loadEpisodes(true)} refreshing={refreshing} />,
+      }}
+    >
       <Button onPress={goBack} title="Back" variant="ghost" />
 
       <View style={styles.header}>

@@ -3,6 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { ErrorState } from '@/components/ui/ErrorState';
 import { LoadingState } from '@/components/ui/LoadingState';
 import { Screen } from '@/components/ui/Screen';
 import { routes } from '@/constants/routes';
@@ -10,7 +11,7 @@ import { theme } from '@/constants/theme';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function ProfileScreen() {
-  const { clearError, error, isAuthenticated, isLoading, logout, user } = useAuth();
+  const { clearError, error, isAuthenticated, isLoading, logout, refreshUser, user } = useAuth();
 
   async function handleLogout() {
     try {
@@ -37,8 +38,6 @@ export default function ProfileScreen() {
             Log in or create an account to manage your Watchloom profile and saved titles.
           </Text>
         </View>
-
-        {error ? <Text style={styles.error}>{error}</Text> : null}
 
         <View style={styles.actions}>
           <Button
@@ -75,7 +74,13 @@ export default function ProfileScreen() {
         <ProfileRow label="Role" value={user.role} />
       </Card>
 
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+      {error ? (
+        <ErrorState
+          message="We could not refresh your account details. Please try again."
+          retryAction={<Button onPress={() => void refreshUser()} title="Retry" variant="secondary" />}
+          title="Could not refresh profile"
+        />
+      ) : null}
 
       <Button
         onPress={() => router.push(routes.favourites as Href)}
@@ -127,10 +132,6 @@ const styles = StyleSheet.create({
   },
   actions: {
     gap: theme.spacing.md,
-  },
-  error: {
-    color: theme.colors.danger,
-    fontSize: theme.fontSizes.sm,
   },
   row: {
     gap: theme.spacing.xs,

@@ -41,7 +41,11 @@ export function SeasonList({ onPressSeason, seasons }: SeasonListProps) {
           <Card style={styles.card}>
             {season.posterUrl ? (
               <Image source={{ uri: season.posterUrl }} style={styles.poster} />
-            ) : null}
+            ) : (
+              <View style={[styles.poster, styles.posterPlaceholder]}>
+                <Text style={styles.placeholderText}>No poster</Text>
+              </View>
+            )}
             <View style={styles.content}>
               <Text style={styles.title}>{season.title || `Season ${season.seasonNumber}`}</Text>
               {season.releaseYear || season.releaseDate ? (
@@ -65,8 +69,19 @@ const styles = StyleSheet.create({
   },
   poster: {
     aspectRatio: 2 / 3,
+    backgroundColor: theme.colors.disabled,
     borderRadius: theme.radius.sm,
     width: 72,
+  },
+  posterPlaceholder: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: theme.spacing.xs,
+  },
+  placeholderText: {
+    color: theme.colors.textMuted,
+    fontSize: theme.fontSizes.sm,
+    textAlign: 'center',
   },
   content: {
     flex: 1,

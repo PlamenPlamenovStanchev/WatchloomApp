@@ -10,6 +10,7 @@ import { Screen } from '@/components/ui/Screen';
 import { routes } from '@/constants/routes';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/hooks/useAuth';
+import { getUserFriendlyError } from '@/lib/errors';
 import {
   getFavourites,
   removeFavourite,
@@ -43,7 +44,7 @@ export default function FavouritesScreen() {
       try {
         setFavourites(await getFavourites(accessToken));
       } catch (loadError) {
-        setError(loadError instanceof Error ? loadError.message : 'Unable to load favourites.');
+        setError(getUserFriendlyError(loadError, 'Unable to load favourites. Please try again.'));
       } finally {
         setLoading(false);
         setRefreshing(false);
@@ -70,7 +71,7 @@ export default function FavouritesScreen() {
       await removeFavourite(accessToken, favouriteId);
       setFavourites((current) => current.filter((favourite) => favourite.id !== favouriteId));
     } catch (removeError) {
-      setError(removeError instanceof Error ? removeError.message : 'Unable to remove favourite.');
+      setError(getUserFriendlyError(removeError, 'Unable to remove this favourite. Please try again.'));
     }
   }
 

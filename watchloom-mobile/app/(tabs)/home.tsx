@@ -1,17 +1,19 @@
 import { useCallback, useEffect, useState } from 'react';
 import { router, type Href } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
+import { RefreshControl, StyleSheet, Text, View } from 'react-native';
 
 import { MovieCard } from '@/components/catalog/MovieCard';
 import { SeriesCard } from '@/components/catalog/SeriesCard';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { LoadingState } from '@/components/ui/LoadingState';
 import { Screen } from '@/components/ui/Screen';
 import { routes } from '@/constants/routes';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/hooks/useAuth';
+import { getUserFriendlyError } from '@/lib/errors';
 import { getMovies, getSeries } from '@/services/catalog-api';
 import type { MovieListItemDto, SeriesListItemDto } from '@/types/api';
 
@@ -25,6 +27,7 @@ export default function HomeScreen() {
   const [seriesLoading, setSeriesLoading] = useState(true);
   const [moviesError, setMoviesError] = useState<string | null>(null);
   const [seriesError, setSeriesError] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   const loadMovies = useCallback(async () => {
     setMoviesLoading(true);
@@ -34,7 +37,7 @@ export default function HomeScreen() {
       const response = await getMovies({ page: 1, pageSize: PREVIEW_PAGE_SIZE });
       setMovies(response.items);
     } catch (error) {
-      setMoviesError(error instanceof Error ? error.message : 'Unable to load movies.');
+      setMoviesError(getUserFriendlyError(error, 'Unable to load movies. Please try again.'));
     } finally {
       setMoviesLoading(false);
     }
@@ -48,7 +51,7 @@ export default function HomeScreen() {
       const response = await getSeries({ page: 1, pageSize: PREVIEW_PAGE_SIZE });
       setSeries(response.items);
     } catch (error) {
-      setSeriesError(error instanceof Error ? error.message : 'Unable to load series.');
+      setSeriesError(getUserFriendlyError(error, 'Unable to load series. Please try again.'));
     } finally {
       setSeriesLoading(false);
     }
@@ -61,8 +64,18 @@ export default function HomeScreen() {
     void loadSeries();
   }, [loadMovies, loadSeries]);
 
+  async function refresh() {
+    setRefreshing(true);
+    await Promise.all([loadMovies(), loadSeries()]);
+    setRefreshing(false);
+  }
+
   return (
-    <Screen>
+    <Screen
+      scrollViewProps={{
+        refreshControl: <RefreshControl onRefresh={() => void refresh()} refreshing={refreshing} />,
+      }}
+    >
       <Card style={styles.hero}>
         <Text style={styles.eyebrow}>WATCHLOOM</Text>
         <Text style={styles.title}>
@@ -173,9 +186,7 @@ function PreviewSection({
       ) : hasItems ? (
         <View style={styles.previewList}>{children}</View>
       ) : (
-        <Card>
-          <Text style={styles.emptyText}>{emptyMessage}</Text>
-        </Card>
+        <EmptyState message={emptyMessage} title={`No ${title.toLowerCase()} available`} />
       )}
     </View>
   );
@@ -219,10 +230,5 @@ const styles = StyleSheet.create({
   },
   previewList: {
     gap: theme.spacing.md,
-  },
-  emptyText: {
-    color: theme.colors.textMuted,
-    fontSize: theme.fontSizes.md,
-    lineHeight: 22,
   },
 });

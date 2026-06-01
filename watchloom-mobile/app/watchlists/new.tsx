@@ -9,6 +9,7 @@ import { Screen } from '@/components/ui/Screen';
 import { routes } from '@/constants/routes';
 import { theme } from '@/constants/theme';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
+import { getUserFriendlyError } from '@/lib/errors';
 import { createWatchlist } from '@/services/watchlist-api';
 
 export default function NewWatchlistScreen() {
@@ -29,7 +30,7 @@ export default function NewWatchlistScreen() {
       const watchlist = await createWatchlist(accessToken, input);
       router.replace(routes.watchlistDetails(String(watchlist.id)) as Href);
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : 'Unable to create watchlist.');
+      setError(getUserFriendlyError(submitError, 'Unable to create this watchlist. Please try again.'));
     } finally {
       setSubmitting(false);
     }

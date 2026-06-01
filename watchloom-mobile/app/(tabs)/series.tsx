@@ -10,6 +10,7 @@ import { ErrorState } from '@/components/ui/ErrorState';
 import { LoadingState } from '@/components/ui/LoadingState';
 import { Screen } from '@/components/ui/Screen';
 import { theme } from '@/constants/theme';
+import { getUserFriendlyError } from '@/lib/errors';
 import { getSeries } from '@/services/catalog-api';
 import type { SeriesListItemDto } from '@/types/api';
 
@@ -64,7 +65,7 @@ export default function SeriesScreen() {
           return;
         }
 
-        setError(loadError instanceof Error ? loadError.message : 'Unable to load series.');
+        setError(getUserFriendlyError(loadError, 'Unable to load series. Please try again.'));
       } finally {
         if (currentRequestId === requestId.current) {
           setLoading(false);

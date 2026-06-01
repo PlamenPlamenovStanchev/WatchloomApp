@@ -11,6 +11,7 @@ import { routes } from '@/constants/routes';
 import { theme } from '@/constants/theme';
 import { confirmAction } from '@/lib/confirm';
 import { showMessage } from '@/lib/message';
+import { getUserFriendlyError } from '@/lib/errors';
 import {
   createReview,
   deleteReview,
@@ -53,7 +54,7 @@ export function MediaReviewsSection({
       setReviews(publicReviews);
       setMyReview(myReviews.find((review) => matchesMedia(review, input)) ?? null);
     } catch (error) {
-      showMessage('Could not load reviews', error instanceof Error ? error.message : 'Please try again.');
+      showMessage('Could not load reviews', getUserFriendlyError(error, 'Please try again.'));
     } finally {
       setLoading(false);
     }
@@ -84,7 +85,7 @@ export function MediaReviewsSection({
 
       await loadReviews();
     } catch (error) {
-      showMessage('Could not save review', error instanceof Error ? error.message : 'Please try again.');
+      showMessage('Could not save review', getUserFriendlyError(error, 'Please try again.'));
     } finally {
       setSubmitting(false);
     }
@@ -112,7 +113,7 @@ export function MediaReviewsSection({
       showMessage('Review deleted', 'Your review has been removed.');
       await loadReviews();
     } catch (error) {
-      showMessage('Could not delete review', error instanceof Error ? error.message : 'Please try again.');
+      showMessage('Could not delete review', getUserFriendlyError(error, 'Please try again.'));
     } finally {
       setSubmitting(false);
     }

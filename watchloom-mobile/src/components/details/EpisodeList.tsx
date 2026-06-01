@@ -26,7 +26,7 @@ export function EpisodeList({ episodes }: EpisodeListProps) {
       {sortedEpisodes.map((episode) => (
         <Card key={episode.id}>
           <Text style={styles.number}>EPISODE {episode.episodeNumber}</Text>
-          <Text style={styles.title}>{episode.title}</Text>
+          <Text style={styles.title}>{episode.title || 'Untitled episode'}</Text>
           <Text style={styles.body}>
             {episode.overview || 'No description is available for this episode.'}
           </Text>

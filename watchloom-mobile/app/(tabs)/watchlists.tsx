@@ -10,6 +10,7 @@ import { Screen } from '@/components/ui/Screen';
 import { routes } from '@/constants/routes';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/hooks/useAuth';
+import { getUserFriendlyError } from '@/lib/errors';
 import { getWatchlists } from '@/services/watchlist-api';
 import type { WatchlistSummaryDto } from '@/types/api';
 
@@ -40,7 +41,7 @@ export default function WatchlistsScreen() {
       try {
         setWatchlists(await getWatchlists(accessToken));
       } catch (loadError) {
-        setError(loadError instanceof Error ? loadError.message : 'Unable to load watchlists.');
+        setError(getUserFriendlyError(loadError, 'Unable to load watchlists. Please try again.'));
       } finally {
         setLoading(false);
         setRefreshing(false);

@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/Card';
 import { routes } from '@/constants/routes';
 import { theme } from '@/constants/theme';
 import { showMessage } from '@/lib/message';
+import { getUserFriendlyError } from '@/lib/errors';
 import { getPlannedNotificationRecord } from '@/lib/planned-notification-storage';
 import {
   cancelPlannedItemReminder,
@@ -58,7 +59,7 @@ export function PlannedWatchItemCard({ item }: PlannedWatchItemCardProps) {
     } catch (error) {
       showMessage(
         'Could not schedule reminder',
-        error instanceof Error ? error.message : 'Please try again.',
+        getUserFriendlyError(error, 'Please try again.'),
       );
     } finally {
       setScheduling(false);

@@ -10,6 +10,7 @@ import { Screen } from '@/components/ui/Screen';
 import { routes } from '@/constants/routes';
 import { theme } from '@/constants/theme';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
+import { getUserFriendlyError } from '@/lib/errors';
 import { getWatchlistById, updateWatchlist } from '@/services/watchlist-api';
 import type { WatchlistWithItemsDto } from '@/types/api';
 
@@ -33,7 +34,7 @@ export default function EditWatchlistScreen() {
     try {
       setWatchlist(await getWatchlistById(accessToken, watchlistId));
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : 'Unable to load watchlist.');
+      setError(getUserFriendlyError(loadError, 'Unable to load this watchlist. Please try again.'));
     } finally {
       setLoading(false);
     }
@@ -58,7 +59,7 @@ export default function EditWatchlistScreen() {
       await updateWatchlist(accessToken, watchlistId, input);
       router.replace(routes.watchlistDetails(watchlistId) as Href);
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : 'Unable to update watchlist.');
+      setError(getUserFriendlyError(submitError, 'Unable to update this watchlist. Please try again.'));
     } finally {
       setSubmitting(false);
     }

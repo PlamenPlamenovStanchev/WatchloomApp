@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { router, type Href, useLocalSearchParams } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
+import { RefreshControl, StyleSheet, Text, View } from 'react-native';
 
 import { WatchlistItemCard } from '@/components/watchlists/WatchlistItemCard';
 import { Button } from '@/components/ui/Button';
@@ -13,6 +13,7 @@ import { routes } from '@/constants/routes';
 import { theme } from '@/constants/theme';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
 import { confirmAction } from '@/lib/confirm';
+import { getUserFriendlyError } from '@/lib/errors';
 import {
   cancelPlannedItemReminder,
   rescheduleKnownPlannedItemReminder,
@@ -32,22 +33,28 @@ export default function WatchlistDetailsScreen() {
   const [watchlist, setWatchlist] = useState<WatchlistWithItemsDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const loadWatchlist = useCallback(async () => {
+  const loadWatchlist = useCallback(async (refresh = false) => {
     if (!accessToken || !watchlistId) {
       return;
     }
 
-    setLoading(true);
+    if (refresh) {
+      setRefreshing(true);
+    } else {
+      setLoading(true);
+    }
     setError(null);
 
     try {
       setWatchlist(await getWatchlistById(accessToken, watchlistId));
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : 'Unable to load watchlist.');
+      setError(getUserFriendlyError(loadError, 'Unable to load this watchlist. Please try again.'));
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }, [accessToken, watchlistId]);
 
@@ -85,7 +92,7 @@ export default function WatchlistDetailsScreen() {
       );
       router.replace(routes.tabs.watchlists as Href);
     } catch (deleteError) {
-      setError(deleteError instanceof Error ? deleteError.message : 'Unable to delete watchlist.');
+      setError(getUserFriendlyError(deleteError, 'Unable to delete this watchlist. Please try again.'));
     } finally {
       setDeleting(false);
     }
@@ -157,7 +164,11 @@ export default function WatchlistDetailsScreen() {
   }
 
   return (
-    <Screen>
+    <Screen
+      scrollViewProps={{
+        refreshControl: <RefreshControl onRefresh={() => void loadWatchlist(true)} refreshing={refreshing} />,
+      }}
+    >
       <Button onPress={() => router.replace(routes.tabs.watchlists as Href)} title="Back" variant="ghost" />
       <View style={styles.header}>
         <Text style={styles.title}>{watchlist.name}</Text>

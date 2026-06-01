@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { router, type Href, useLocalSearchParams } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
+import { RefreshControl, StyleSheet, Text, View } from 'react-native';
 
 import { CastBlock } from '@/components/details/CastBlock';
 import { DetailInfoRow } from '@/components/details/DetailInfoRow';
@@ -19,6 +19,7 @@ import { routes } from '@/constants/routes';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/hooks/useAuth';
 import { ApiClientError } from '@/lib/api-client';
+import { getUserFriendlyError } from '@/lib/errors';
 import { getSeriesBySlug, getSeriesSeasons } from '@/services/catalog-api';
 import type { SeasonDto, SeriesDetailsDto } from '@/types/api';
 
@@ -29,11 +30,12 @@ export default function SeriesDetailsScreen() {
   const [series, setSeries] = useState<SeriesDetailsDto | null>(null);
   const [seasons, setSeasons] = useState<SeasonDto[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [watchlistModalVisible, setWatchlistModalVisible] = useState(false);
 
-  const loadSeries = useCallback(async () => {
+  const loadSeries = useCallback(async (refresh = false) => {
     if (!slug) {
       setSeries(null);
       setSeasons([]);
@@ -42,7 +44,11 @@ export default function SeriesDetailsScreen() {
       return;
     }
 
-    setLoading(true);
+    if (refresh) {
+      setRefreshing(true);
+    } else {
+      setLoading(true);
+    }
     setError(null);
     setNotFound(false);
 
@@ -61,10 +67,11 @@ export default function SeriesDetailsScreen() {
       if (loadError instanceof ApiClientError && loadError.status === 404) {
         setNotFound(true);
       } else {
-        setError(loadError instanceof Error ? loadError.message : 'Unable to load this series.');
+        setError(getUserFriendlyError(loadError, 'Unable to load this series. Please try again.'));
       }
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }, [slug]);
 
@@ -120,7 +127,11 @@ export default function SeriesDetailsScreen() {
   }
 
   return (
-    <Screen>
+    <Screen
+      scrollViewProps={{
+        refreshControl: <RefreshControl onRefresh={() => void loadSeries(true)} refreshing={refreshing} />,
+      }}
+    >
       <Button onPress={goBack} title="Back" variant="ghost" />
 
       <PosterHeader

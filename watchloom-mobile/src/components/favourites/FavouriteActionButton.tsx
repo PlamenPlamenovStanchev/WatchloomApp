@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
 import { showMessage } from '@/lib/message';
+import { getUserFriendlyError } from '@/lib/errors';
 import {
   addFavourite,
   checkIsFavourite,
@@ -34,7 +35,7 @@ export function FavouriteActionButton({
     } catch (error) {
       showMessage(
         'Could not load favourite state',
-        error instanceof Error ? error.message : 'Please try again.',
+        getUserFriendlyError(error, 'Please try again.'),
       );
     } finally {
       setLoading(false);
@@ -62,7 +63,7 @@ export function FavouriteActionButton({
     } catch (error) {
       showMessage(
         'Could not update favourites',
-        error instanceof Error ? error.message : 'Please try again.',
+        getUserFriendlyError(error, 'Please try again.'),
       );
       await loadFavourite();
     } finally {
