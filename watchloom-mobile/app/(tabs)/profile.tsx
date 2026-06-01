@@ -77,6 +77,10 @@ export default function ProfileScreen() {
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
+      <Button
+        onPress={() => router.push(routes.favourites as Href)}
+        title="View Favourites"
+      />
       <Button loading={isLoading} onPress={handleLogout} title="Log out" variant="secondary" />
     </Screen>
   );

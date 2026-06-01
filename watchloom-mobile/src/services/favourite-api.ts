@@ -16,6 +16,7 @@ export type FavouriteMediaInput =
 export type FavouriteWithMediaDto = FavouriteDto & {
   media: {
     posterUrl?: string | null;
+    releaseYear?: number | null;
     slug: string;
     title: string;
   } | null;

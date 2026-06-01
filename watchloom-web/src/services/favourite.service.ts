@@ -11,6 +11,7 @@ export type FavouriteWithMedia = FavouriteRecord & {
     title: string;
     slug: string;
     posterUrl: string | null;
+    releaseYear: number | null;
   } | null;
 };
 
@@ -50,8 +51,8 @@ export const getUserFavourites = async (userId: number): Promise<FavouriteWithMe
   const rows = await db
     .select({
       favourite: favourites,
-      movie: { title: movies.title, slug: movies.slug, posterUrl: movies.posterUrl },
-      show: { title: series.title, slug: series.slug, posterUrl: series.posterUrl },
+      movie: { title: movies.title, slug: movies.slug, posterUrl: movies.posterUrl, releaseYear: movies.releaseYear },
+      show: { title: series.title, slug: series.slug, posterUrl: series.posterUrl, releaseYear: series.releaseYear },
     })
     .from(favourites)
     .leftJoin(movies, eq(favourites.movieId, movies.id))
