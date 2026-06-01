@@ -28,4 +28,8 @@ export const theme = {
     lg: 20,
     xxl: 34,
   },
+  layout: {
+    contentMaxWidth: 840,
+    tabletBreakpoint: 600,
+  },
 } as const;

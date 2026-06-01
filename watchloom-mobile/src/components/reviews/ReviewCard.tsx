@@ -16,7 +16,7 @@ export function ReviewCard({ review }: ReviewCardProps) {
         <Text style={styles.rating}>{review.rating}/5</Text>
       </View>
       <Text style={styles.metadata}>
-        By {review.user.username}
+        By {review.user?.username || 'Unknown user'}
         {review.createdAt ? ` | ${formatDate(review.createdAt)}` : ''}
       </Text>
       <Text style={styles.content}>{review.content}</Text>

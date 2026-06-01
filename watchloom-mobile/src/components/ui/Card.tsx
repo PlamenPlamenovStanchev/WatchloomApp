@@ -12,6 +12,7 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.border,
     borderRadius: theme.radius.lg,
     borderWidth: 1,
+    elevation: 2,
     gap: theme.spacing.md,
     padding: theme.spacing.md,
   },

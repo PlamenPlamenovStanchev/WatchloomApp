@@ -33,10 +33,10 @@ export function MyReviewCard({ onDelete, review }: MyReviewCardProps) {
         style={({ pressed }) => pressed && styles.pressed}
       >
         <Text style={styles.type}>{review.mediaType.toUpperCase()}</Text>
-        <Text style={styles.mediaTitle}>{review.media?.title || 'Unavailable title'}</Text>
+        <Text numberOfLines={2} style={styles.mediaTitle}>{review.media?.title || 'Unavailable title'}</Text>
         <Text style={styles.title}>{review.title || 'Untitled review'}</Text>
         <Text style={styles.rating}>{review.rating}/5</Text>
-        <Text style={styles.content}>{review.content}</Text>
+        <Text numberOfLines={5} style={styles.content}>{review.content || 'Unavailable'}</Text>
       </Pressable>
       <Button
         onPress={() => {

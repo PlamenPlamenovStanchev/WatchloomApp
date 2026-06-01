@@ -101,10 +101,10 @@ export function PlannedWatchItemCard({ item }: PlannedWatchItemCardProps) {
         )}
         <View style={styles.content}>
           <Text style={styles.type}>{item.mediaType.toUpperCase()}</Text>
-          <Text style={styles.title}>{item.media?.title || 'Unavailable title'}</Text>
+          <Text numberOfLines={3} style={styles.title}>{item.media?.title || 'Unavailable title'}</Text>
           <Text style={styles.metadata}>Status: {formatStatus(item.status)}</Text>
           <Text style={styles.metadata}>Planned: {formatDate(item.plannedWatchAt)}</Text>
-          <Text style={styles.watchlist}>Watchlist: {item.watchlist.name}</Text>
+          <Text style={styles.watchlist}>Watchlist: {item.watchlist?.name || 'Unavailable'}</Text>
           <Text style={styles.reminder}>
             Reminder: {notificationId ? 'Scheduled' : 'Not scheduled'}
           </Text>
@@ -170,6 +170,7 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
     fontSize: theme.fontSizes.lg,
     fontWeight: '600',
+    lineHeight: 26,
   },
   metadata: {
     color: theme.colors.textMuted,

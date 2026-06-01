@@ -51,10 +51,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   poster: {
+    aspectRatio: 2 / 3,
     backgroundColor: theme.colors.disabled,
     borderRadius: theme.radius.sm,
-    height: 150,
-    width: 100,
+    width: 92,
   },
   posterPlaceholder: {
     alignItems: 'center',
@@ -74,6 +74,7 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
     fontSize: theme.fontSizes.lg,
     fontWeight: '600',
+    lineHeight: 26,
   },
   metadata: {
     color: theme.colors.textMuted,

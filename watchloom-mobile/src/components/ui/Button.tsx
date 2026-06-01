@@ -46,7 +46,7 @@ export function Button({
 const styles = StyleSheet.create({
   button: {
     alignItems: 'center',
-    borderRadius: theme.radius.sm,
+    borderRadius: theme.radius.md,
     justifyContent: 'center',
     minHeight: 48,
     paddingHorizontal: theme.spacing.md,
@@ -62,6 +62,8 @@ const styles = StyleSheet.create({
   },
   ghost: {
     backgroundColor: 'transparent',
+    minHeight: 40,
+    paddingVertical: theme.spacing.sm,
   },
   pressed: {
     opacity: 0.8,

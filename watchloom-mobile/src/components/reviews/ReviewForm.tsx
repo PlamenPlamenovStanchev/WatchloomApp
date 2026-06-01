@@ -49,14 +49,18 @@ export function ReviewForm({
       <Input
         editable={!loading}
         label="Title (optional)"
+        maxLength={120}
         onChangeText={setTitle}
+        placeholder="Give your review a title"
         value={title}
       />
       <Input
         editable={!loading}
         label="Review"
+        maxLength={4000}
         multiline
         onChangeText={setContent}
+        placeholder="Share your thoughts"
         style={styles.contentInput}
         value={content}
       />

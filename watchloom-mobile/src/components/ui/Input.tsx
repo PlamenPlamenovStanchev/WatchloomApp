@@ -34,13 +34,13 @@ const styles = StyleSheet.create({
   input: {
     backgroundColor: theme.colors.surface,
     borderColor: theme.colors.border,
-    borderRadius: theme.radius.sm,
+    borderRadius: theme.radius.md,
     borderWidth: 1,
     color: theme.colors.text,
     fontSize: theme.fontSizes.md,
     minHeight: 48,
     paddingHorizontal: theme.spacing.md,
-    paddingVertical: 12,
+    paddingVertical: 13,
   },
   inputError: {
     borderColor: theme.colors.danger,

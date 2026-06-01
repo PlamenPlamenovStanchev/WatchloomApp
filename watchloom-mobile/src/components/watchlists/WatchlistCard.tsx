@@ -21,8 +21,8 @@ export function WatchlistCard({ watchlist }: WatchlistCardProps) {
       style={({ pressed }) => pressed && styles.pressed}
     >
       <Card>
-        <Text style={styles.title}>{watchlist.name}</Text>
-        {watchlist.description ? <Text style={styles.description}>{watchlist.description}</Text> : null}
+        <Text numberOfLines={2} style={styles.title}>{watchlist.name}</Text>
+        {watchlist.description ? <Text numberOfLines={3} style={styles.description}>{watchlist.description}</Text> : null}
         <Text style={styles.count}>{itemLabel}</Text>
       </Card>
     </Pressable>
@@ -34,6 +34,7 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
     fontSize: theme.fontSizes.lg,
     fontWeight: '600',
+    lineHeight: 26,
   },
   description: {
     color: theme.colors.textMuted,

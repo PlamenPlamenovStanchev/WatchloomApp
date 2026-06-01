@@ -98,7 +98,7 @@ export function WatchlistItemCard({ item, onRemove, onUpdate }: WatchlistItemCar
         )}
         <View style={styles.summaryText}>
           <Text style={styles.type}>{item.mediaType.toUpperCase()}</Text>
-          <Text style={styles.title}>{item.media?.title || 'Unavailable title'}</Text>
+          <Text numberOfLines={3} style={styles.title}>{item.media?.title || 'Unavailable title'}</Text>
           {item.plannedWatchAt ? (
             <Text style={styles.metadata}>Planned: {formatDisplayDate(item.plannedWatchAt)}</Text>
           ) : null}
@@ -188,6 +188,7 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
     fontSize: theme.fontSizes.lg,
     fontWeight: '600',
+    lineHeight: 26,
   },
   metadata: {
     color: theme.colors.textMuted,

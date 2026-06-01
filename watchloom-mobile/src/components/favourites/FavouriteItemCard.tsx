@@ -41,7 +41,7 @@ export function FavouriteItemCard({ item, onRemove }: FavouriteItemCardProps) {
         )}
         <View style={styles.content}>
           <Text style={styles.type}>{item.mediaType.toUpperCase()}</Text>
-          <Text style={styles.title}>{item.media?.title || 'Unavailable title'}</Text>
+          <Text numberOfLines={3} style={styles.title}>{item.media?.title || 'Unavailable title'}</Text>
           {item.media?.releaseYear ? (
             <Text style={styles.metadata}>Released: {item.media.releaseYear}</Text>
           ) : null}
@@ -93,6 +93,7 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
     fontSize: theme.fontSizes.lg,
     fontWeight: '600',
+    lineHeight: 26,
   },
   metadata: {
     color: theme.colors.textMuted,

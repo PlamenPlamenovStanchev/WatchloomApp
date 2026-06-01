@@ -56,7 +56,10 @@ function LoadingFooter() {
 
 const styles = StyleSheet.create({
   content: {
+    alignSelf: 'center',
+    maxWidth: theme.layout.contentMaxWidth,
     padding: theme.spacing.md,
+    width: '100%',
   },
   empty: {
     flexGrow: 1,

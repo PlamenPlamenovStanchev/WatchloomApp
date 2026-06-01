@@ -50,8 +50,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
+    alignSelf: 'center',
     gap: theme.spacing.lg,
+    maxWidth: theme.layout.contentMaxWidth,
     padding: theme.spacing.lg,
+    width: '100%',
   },
   staticContent: {
     flex: 1,
