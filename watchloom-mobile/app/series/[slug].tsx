@@ -7,6 +7,7 @@ import { DetailInfoRow } from '@/components/details/DetailInfoRow';
 import { GenreChips } from '@/components/details/GenreChips';
 import { PosterHeader } from '@/components/details/PosterHeader';
 import { SeasonList } from '@/components/details/SeasonList';
+import { FavouriteActionButton } from '@/components/favourites/FavouriteActionButton';
 import { AddToWatchlistModal } from '@/components/watchlists/AddToWatchlistModal';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -150,6 +151,7 @@ export default function SeriesDetailsScreen() {
 
       {isAuthenticated && accessToken ? (
         <>
+          <FavouriteActionButton mediaId={series.id} mediaType="series" token={accessToken} />
           <Button onPress={() => setWatchlistModalVisible(true)} title="Add to Watchlist" />
           <AddToWatchlistModal
             mediaId={series.id}

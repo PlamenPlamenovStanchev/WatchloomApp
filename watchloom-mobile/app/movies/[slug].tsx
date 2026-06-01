@@ -6,6 +6,7 @@ import { CastBlock } from '@/components/details/CastBlock';
 import { DetailInfoRow } from '@/components/details/DetailInfoRow';
 import { GenreChips } from '@/components/details/GenreChips';
 import { PosterHeader } from '@/components/details/PosterHeader';
+import { FavouriteActionButton } from '@/components/favourites/FavouriteActionButton';
 import { AddToWatchlistModal } from '@/components/watchlists/AddToWatchlistModal';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -138,6 +139,7 @@ export default function MovieDetailsScreen() {
 
       {isAuthenticated && accessToken ? (
         <>
+          <FavouriteActionButton mediaId={movie.id} mediaType="movie" token={accessToken} />
           <Button onPress={() => setWatchlistModalVisible(true)} title="Add to Watchlist" />
           <AddToWatchlistModal
             mediaId={movie.id}
