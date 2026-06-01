@@ -1,11 +1,12 @@
 import { router, type Href } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Alert, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { routes } from '@/constants/routes';
 import { theme } from '@/constants/theme';
+import { showMessage } from '@/lib/message';
 import { getPlannedNotificationRecord } from '@/lib/planned-notification-storage';
 import {
   cancelPlannedItemReminder,
@@ -48,14 +49,14 @@ export function PlannedWatchItemCard({ item }: PlannedWatchItemCardProps) {
       const result = await schedulePlannedItemReminder(item);
       const record = await getPlannedNotificationRecord(item.id);
       setNotificationId(record?.notificationId ?? null);
-      Alert.alert(
+      showMessage(
         result === 'scheduled' ? 'Reminder scheduled' : 'Reminder already scheduled',
         result === 'scheduled'
           ? `We will remind you to watch ${item.media?.title || 'this title'}.`
           : 'A reminder is already set for this planned watch time.',
       );
     } catch (error) {
-      Alert.alert(
+      showMessage(
         'Could not schedule reminder',
         error instanceof Error ? error.message : 'Please try again.',
       );
@@ -70,9 +71,9 @@ export function PlannedWatchItemCard({ item }: PlannedWatchItemCardProps) {
     try {
       await cancelPlannedItemReminder(item.id);
       setNotificationId(null);
-      Alert.alert('Reminder cancelled', 'The planned watching reminder has been removed.');
+      showMessage('Reminder cancelled', 'The planned watching reminder has been removed.');
     } catch {
-      Alert.alert('Could not cancel reminder', 'Please try again.');
+      showMessage('Could not cancel reminder', 'Please try again.');
     } finally {
       setScheduling(false);
     }

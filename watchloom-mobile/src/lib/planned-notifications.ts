@@ -1,4 +1,8 @@
-import { cancelNotification, schedulePlannedWatchNotification } from '@/lib/notifications';
+import {
+  cancelNotification,
+  notificationsAreAvailable,
+  schedulePlannedWatchNotification,
+} from '@/lib/notifications';
 import {
   deletePlannedNotificationRecord,
   getPlannedNotificationRecord,
@@ -20,6 +24,10 @@ export type ScheduleReminderResult = 'already-scheduled' | 'scheduled';
 export async function schedulePlannedItemReminder(
   item: PlannedNotificationItem,
 ): Promise<ScheduleReminderResult> {
+  if (!notificationsAreAvailable()) {
+    throw new Error('Local reminders are available in the Android and iOS app, but not in the web browser.');
+  }
+
   const plannedWatchAt = getFuturePlannedWatchAt(item.plannedWatchAt);
   const currentRecord = await getPlannedNotificationRecord(item.id);
 

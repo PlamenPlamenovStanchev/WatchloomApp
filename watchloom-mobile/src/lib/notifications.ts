@@ -36,7 +36,7 @@ export type SchedulePlannedWatchNotificationInput = PlannedWatchItemIdentifier &
   slug?: string;
 };
 
-function notificationsAreAvailable() {
+export function notificationsAreAvailable() {
   return Platform.OS !== "web";
 }
 
