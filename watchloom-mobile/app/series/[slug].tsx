@@ -8,6 +8,7 @@ import { GenreChips } from '@/components/details/GenreChips';
 import { PosterHeader } from '@/components/details/PosterHeader';
 import { SeasonList } from '@/components/details/SeasonList';
 import { FavouriteActionButton } from '@/components/favourites/FavouriteActionButton';
+import { MediaReviewsSection } from '@/components/reviews/MediaReviewsSection';
 import { AddToWatchlistModal } from '@/components/watchlists/AddToWatchlistModal';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -170,6 +171,13 @@ export default function SeriesDetailsScreen() {
           />
         </Card>
       )}
+
+      <MediaReviewsSection
+        isAuthenticated={isAuthenticated}
+        mediaId={series.id}
+        mediaType="series"
+        token={accessToken}
+      />
     </Screen>
   );
 }

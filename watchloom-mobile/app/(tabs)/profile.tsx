@@ -81,6 +81,7 @@ export default function ProfileScreen() {
         onPress={() => router.push(routes.favourites as Href)}
         title="View Favourites"
       />
+      <Button onPress={() => router.push(routes.reviews as Href)} title="View My Reviews" />
       <Button loading={isLoading} onPress={handleLogout} title="Log out" variant="secondary" />
     </Screen>
   );

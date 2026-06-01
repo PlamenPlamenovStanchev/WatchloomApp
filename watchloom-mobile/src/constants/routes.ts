@@ -13,6 +13,7 @@ export const routes = {
   movieDetails: (slug: string) => `/movies/${slug}`,
   favourites: '/favourites',
   planned: '/planned',
+  reviews: '/reviews',
   seriesDetails: (slug: string) => `/series/${slug}`,
   seasonEpisodes: (seasonId: string) => `/series/seasons/${seasonId}`,
   newWatchlist: '/watchlists/new',
