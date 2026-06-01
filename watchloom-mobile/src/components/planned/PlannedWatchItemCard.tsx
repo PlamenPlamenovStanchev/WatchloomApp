@@ -1,12 +1,16 @@
 import { router, type Href } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { routes } from '@/constants/routes';
 import { theme } from '@/constants/theme';
-import { schedulePlannedItemReminder } from '@/lib/planned-notifications';
+import { getPlannedNotificationRecord } from '@/lib/planned-notification-storage';
+import {
+  cancelPlannedItemReminder,
+  schedulePlannedItemReminder,
+} from '@/lib/planned-notifications';
 import type { PlannedWatchItemDto } from '@/types/api';
 
 type PlannedWatchItemCardProps = {
@@ -15,6 +19,7 @@ type PlannedWatchItemCardProps = {
 
 export function PlannedWatchItemCard({ item }: PlannedWatchItemCardProps) {
   const [scheduling, setScheduling] = useState(false);
+  const [notificationId, setNotificationId] = useState<string | null>(null);
   const detailsRoute =
     item.media && item.mediaType === 'movie'
       ? routes.movieDetails(item.media.slug)
@@ -22,11 +27,27 @@ export function PlannedWatchItemCard({ item }: PlannedWatchItemCardProps) {
         ? routes.seriesDetails(item.media.slug)
         : undefined;
 
+  useEffect(() => {
+    let isActive = true;
+
+    void getPlannedNotificationRecord(item.id).then((record) => {
+      if (isActive) {
+        setNotificationId(record?.notificationId ?? null);
+      }
+    });
+
+    return () => {
+      isActive = false;
+    };
+  }, [item.id]);
+
   async function scheduleReminder() {
     setScheduling(true);
 
     try {
       const result = await schedulePlannedItemReminder(item);
+      const record = await getPlannedNotificationRecord(item.id);
+      setNotificationId(record?.notificationId ?? null);
       Alert.alert(
         result === 'scheduled' ? 'Reminder scheduled' : 'Reminder already scheduled',
         result === 'scheduled'
@@ -38,6 +59,20 @@ export function PlannedWatchItemCard({ item }: PlannedWatchItemCardProps) {
         'Could not schedule reminder',
         error instanceof Error ? error.message : 'Please try again.',
       );
+    } finally {
+      setScheduling(false);
+    }
+  }
+
+  async function cancelReminder() {
+    setScheduling(true);
+
+    try {
+      await cancelPlannedItemReminder(item.id);
+      setNotificationId(null);
+      Alert.alert('Reminder cancelled', 'The planned watching reminder has been removed.');
+    } catch {
+      Alert.alert('Could not cancel reminder', 'Please try again.');
     } finally {
       setScheduling(false);
     }
@@ -68,14 +103,17 @@ export function PlannedWatchItemCard({ item }: PlannedWatchItemCardProps) {
           <Text style={styles.metadata}>Status: {formatStatus(item.status)}</Text>
           <Text style={styles.metadata}>Planned: {formatDate(item.plannedWatchAt)}</Text>
           <Text style={styles.watchlist}>Watchlist: {item.watchlist.name}</Text>
+          <Text style={styles.reminder}>
+            Reminder: {notificationId ? 'Scheduled' : 'Not scheduled'}
+          </Text>
         </View>
       </Pressable>
       <Button
         loading={scheduling}
         onPress={() => {
-          void scheduleReminder();
+          void (notificationId ? cancelReminder() : scheduleReminder());
         }}
-        title="Remind me"
+        title={notificationId ? 'Cancel reminder' : 'Schedule reminder'}
         variant="secondary"
       />
     </Card>
@@ -138,6 +176,11 @@ const styles = StyleSheet.create({
   watchlist: {
     color: theme.colors.accent,
     fontSize: theme.fontSizes.sm,
+  },
+  reminder: {
+    color: theme.colors.textMuted,
+    fontSize: theme.fontSizes.sm,
+    fontWeight: '600',
   },
   pressed: {
     opacity: 0.8,

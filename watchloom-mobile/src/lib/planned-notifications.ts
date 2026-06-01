@@ -8,6 +8,7 @@ import {
 type PlannedNotificationItem = {
   id: number | string;
   media?: {
+    slug?: string;
     title: string;
   } | null;
   mediaType: 'movie' | 'series';
@@ -32,6 +33,7 @@ export async function schedulePlannedItemReminder(
   const notificationId = await schedulePlannedWatchNotification({
     mediaType: item.mediaType,
     plannedWatchAt,
+    slug: item.media?.slug,
     title: `Watchloom reminder: ${item.media?.title || 'planned title'}`,
     watchlistItemId: item.id,
   });

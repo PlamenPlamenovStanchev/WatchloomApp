@@ -1,6 +1,7 @@
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 
+import { NotificationResponseHandler } from '@/components/notifications/NotificationResponseHandler';
 import { theme } from '@/constants/theme';
 import { AppProviders } from '@/providers';
 
@@ -8,6 +9,7 @@ export default function RootLayout() {
   return (
     <AppProviders>
       <StatusBar style="light" />
+      <NotificationResponseHandler />
       <Stack
         screenOptions={{
           contentStyle: { backgroundColor: theme.colors.background },

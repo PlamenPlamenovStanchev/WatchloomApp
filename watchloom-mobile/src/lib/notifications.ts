@@ -33,6 +33,7 @@ export type SchedulePlannedWatchNotificationInput = PlannedWatchItemIdentifier &
   title: string;
   mediaType: "movie" | "series";
   plannedWatchAt: string | Date;
+  slug?: string;
 };
 
 function notificationsAreAvailable() {
@@ -118,6 +119,7 @@ export async function schedulePlannedWatchNotification(
         data: {
           type: WATCHLOOM_NOTIFICATION_TYPE,
           mediaType: input.mediaType,
+          ...(input.slug ? { slug: input.slug } : {}),
           ...(input.watchlistItemId !== undefined
             ? { watchlistItemId: input.watchlistItemId }
             : { itemId: input.itemId }),
@@ -173,4 +175,30 @@ export async function cancelAllWatchloomNotifications(): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+export function addNotificationResponseListener(
+  listener: (response: Notifications.NotificationResponse) => void,
+) {
+  if (!notificationsAreAvailable()) {
+    return null;
+  }
+
+  return Notifications.addNotificationResponseReceivedListener(listener);
+}
+
+export async function getLastNotificationResponse() {
+  if (!notificationsAreAvailable()) {
+    return null;
+  }
+
+  return Notifications.getLastNotificationResponseAsync();
+}
+
+export async function clearLastNotificationResponse() {
+  if (!notificationsAreAvailable()) {
+    return;
+  }
+
+  await Notifications.clearLastNotificationResponseAsync();
 }
