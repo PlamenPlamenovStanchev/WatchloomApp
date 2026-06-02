@@ -46,7 +46,8 @@ type Role = "actor" | "creator" | "director" | "writer";
 type PersonRole = { name: string; role: Role };
 type Transaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
-const apiToken = process.env.TMDB_API_TOKEN;
+const apiToken = process.env.TMDB_API_TOKEN || process.env.TMDB_API_READ_ACCESS_TOKEN;
+const apiKey = process.env.TMDB_API_KEY;
 const apiBaseUrl = process.env.TMDB_API_BASE_URL ?? "https://api.themoviedb.org/3";
 const imageBaseUrl = process.env.TMDB_IMAGE_BASE_URL ?? "https://image.tmdb.org/t/p/w500";
 const dryRun = process.env.DRY_RUN === "true";
@@ -83,16 +84,21 @@ const names = (items: TmdbPerson[] = [], limit = 5) =>
 const uniqueRoles = (items: PersonRole[]) => [...new Map(items.map((item) => [`${item.role}:${slugify(item.name)}`, item])).values()];
 const titleYearKey = (title: string, releaseYear: number | null) => `${title.toLowerCase().trim()}:${releaseYear ?? ""}`;
 
-async function tmdbFetch<T>(path: string, params: Record<string, string | number> = {}, attempt = 1): Promise<T> {
-  if (!apiToken) throw new Error("TMDB_API_TOKEN is not set");
+async function tmdbFetch<T>(path: string, params: Record<string, string | number> = {}, attempt = 1, useApiKey = false): Promise<T> {
+  const canUseBearerToken = Boolean(apiToken) && !useApiKey;
+  if (!canUseBearerToken && !apiKey) throw new Error("TMDB_API_TOKEN is not set");
   const url = new URL(`${apiBaseUrl.replace(/\/+$/, "")}${path}`);
   for (const [key, value] of Object.entries(params)) url.searchParams.set(key, String(value));
+  if (!canUseBearerToken && apiKey) url.searchParams.set("api_key", apiKey);
   await sleep(requestDelayMs);
-  const response = await fetch(url, { headers: { accept: "application/json", authorization: `Bearer ${apiToken}` } });
+  const response = await fetch(url, { headers: canUseBearerToken
+    ? { accept: "application/json", authorization: `Bearer ${apiToken}` }
+    : { accept: "application/json" } });
+  if (response.status === 401 && canUseBearerToken && apiKey) return tmdbFetch<T>(path, params, attempt, true);
   if ((response.status === 429 || response.status >= 500) && attempt < 4) {
     const retryAfter = Number(response.headers.get("retry-after"));
     await sleep(Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter * 1000 : 500 * attempt);
-    return tmdbFetch<T>(path, params, attempt + 1);
+    return tmdbFetch<T>(path, params, attempt + 1, useApiKey);
   }
   if (!response.ok) throw new Error(`TMDb request failed with ${response.status} ${response.statusText}`);
   return response.json() as Promise<T>;
