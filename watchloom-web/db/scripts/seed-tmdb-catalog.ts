@@ -64,6 +64,10 @@ function positiveInteger(name: string, fallback: number) {
 const movieLimit = positiveInteger("LIMIT_MOVIES", 1000);
 const seriesLimit = positiveInteger("LIMIT_SERIES", 1000);
 const pageLimit = positiveInteger("PAGE_LIMIT", 50);
+const startPageMovies = positiveInteger("START_PAGE_MOVIES", 1);
+const startPageSeries = positiveInteger("START_PAGE_SERIES", 1);
+const discoverYearFrom = positiveInteger("DISCOVER_YEAR_FROM", 0);
+const discoverYearTo = positiveInteger("DISCOVER_YEAR_TO", 0);
 const summary = {
   moviesInserted: 0, movieDuplicates: 0, movieFailures: 0,
   seriesInserted: 0, seriesDuplicates: 0, seriesFailures: 0,
@@ -91,9 +95,18 @@ async function tmdbFetch<T>(path: string, params: Record<string, string | number
   for (const [key, value] of Object.entries(params)) url.searchParams.set(key, String(value));
   if (!canUseBearerToken && apiKey) url.searchParams.set("api_key", apiKey);
   await sleep(requestDelayMs);
-  const response = await fetch(url, { headers: canUseBearerToken
-    ? { accept: "application/json", authorization: `Bearer ${apiToken}` }
-    : { accept: "application/json" } });
+  let response: Response;
+  try {
+    response = await fetch(url, { headers: canUseBearerToken
+      ? { accept: "application/json", authorization: `Bearer ${apiToken}` }
+      : { accept: "application/json" } });
+  } catch (error) {
+    if (attempt < 4) {
+      await sleep(500 * attempt);
+      return tmdbFetch<T>(path, params, attempt + 1, useApiKey);
+    }
+    throw error;
+  }
   if (response.status === 401 && canUseBearerToken && apiKey) return tmdbFetch<T>(path, params, attempt, true);
   if ((response.status === 429 || response.status >= 500) && attempt < 4) {
     const retryAfter = Number(response.headers.get("retry-after"));
@@ -109,9 +122,19 @@ async function collectIds(kind: "movie" | "tv", target: number) {
   const sources = kind === "movie"
     ? ["/movie/popular", "/movie/top_rated", "/discover/movie"]
     : ["/tv/popular", "/tv/top_rated", "/discover/tv"];
+  const startPage = kind === "movie" ? startPageMovies : startPageSeries;
   for (const source of sources) {
-    for (let page = 1; page <= pageLimit; page += 1) {
-      const response = await tmdbFetch<TmdbPage>(source, { page, language: "en-US", sort_by: "popularity.desc" });
+    for (let page = startPage; page < startPage + pageLimit; page += 1) {
+      const params: Record<string, string | number> = { page, language: "en-US", sort_by: "popularity.desc" };
+      if (source.startsWith("/discover/") && discoverYearFrom > 0) params[kind === "movie" ? "primary_release_date.gte" : "first_air_date.gte"] = `${discoverYearFrom}-01-01`;
+      if (source.startsWith("/discover/") && discoverYearTo > 0) params[kind === "movie" ? "primary_release_date.lte" : "first_air_date.lte"] = `${discoverYearTo}-12-31`;
+      let response: TmdbPage;
+      try {
+        response = await tmdbFetch<TmdbPage>(source, params);
+      } catch (error) {
+        console.error(`[${kind} page failed] ${source} page ${page}: ${error instanceof Error ? error.message : String(error)}`);
+        continue;
+      }
       for (const item of response.results ?? []) if (item.id) ids.add(item.id);
       if ((response.results ?? []).length === 0 || ids.size >= target * 2) break;
     }
