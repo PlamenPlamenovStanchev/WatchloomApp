@@ -68,6 +68,7 @@ const startPageMovies = positiveInteger("START_PAGE_MOVIES", 1);
 const startPageSeries = positiveInteger("START_PAGE_SERIES", 1);
 const discoverYearFrom = positiveInteger("DISCOVER_YEAR_FROM", 0);
 const discoverYearTo = positiveInteger("DISCOVER_YEAR_TO", 0);
+const discoverOnly = process.env.DISCOVER_ONLY === "true";
 const summary = {
   moviesInserted: 0, movieDuplicates: 0, movieFailures: 0,
   seriesInserted: 0, seriesDuplicates: 0, seriesFailures: 0,
@@ -119,9 +120,10 @@ async function tmdbFetch<T>(path: string, params: Record<string, string | number
 
 async function collectIds(kind: "movie" | "tv", target: number) {
   const ids = new Set<number>();
-  const sources = kind === "movie"
+  const defaultSources = kind === "movie"
     ? ["/movie/popular", "/movie/top_rated", "/discover/movie"]
     : ["/tv/popular", "/tv/top_rated", "/discover/tv"];
+  const sources = discoverOnly ? [kind === "movie" ? "/discover/movie" : "/discover/tv"] : defaultSources;
   const startPage = kind === "movie" ? startPageMovies : startPageSeries;
   for (const source of sources) {
     for (let page = startPage; page < startPage + pageLimit; page += 1) {
@@ -241,7 +243,7 @@ async function seedSeries() {
 }
 
 async function main() {
-  console.log(`TMDb catalog seed started: DRY_RUN=${dryRun}, LIMIT_MOVIES=${movieLimit}, LIMIT_SERIES=${seriesLimit}, PAGE_LIMIT=${pageLimit}, SKIP_MOVIES=${skipMovies}, SKIP_SERIES=${skipSeries}`);
+  console.log(`TMDb catalog seed started: DRY_RUN=${dryRun}, LIMIT_MOVIES=${movieLimit}, LIMIT_SERIES=${seriesLimit}, PAGE_LIMIT=${pageLimit}, SKIP_MOVIES=${skipMovies}, SKIP_SERIES=${skipSeries}, DISCOVER_ONLY=${discoverOnly}`);
   if (process.env.SEED_SERIES_EPISODES === "true") console.log("SEED_SERIES_EPISODES=true: run db:update-series-episodes after this catalog seed; episode import stays isolated for safety.");
   await seedMovies(); await seedSeries();
   console.log("Final summary"); for (const [key, value] of Object.entries(summary)) console.log(`${key}: ${value}`);

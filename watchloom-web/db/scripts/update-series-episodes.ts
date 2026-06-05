@@ -79,11 +79,18 @@ const tmdbApiKey = process.env.TMDB_API_KEY;
 const tmdbApiBaseUrl = process.env.TMDB_API_BASE_URL ?? "https://api.themoviedb.org/3";
 const tmdbImageBaseUrl = process.env.TMDB_IMAGE_BASE_URL ?? "https://image.tmdb.org/t/p/w500";
 const dryRun = process.env.DRY_RUN === "true";
+const forceUpdate = process.env.FORCE_SERIES_EPISODE_UPDATE === "true";
 const requestDelayMs = 250;
 
-const limitValue = process.env.LIMIT ? Number(process.env.LIMIT) : undefined;
+const limitValue = process.env.BATCH_SIZE ? Number(process.env.BATCH_SIZE) : process.env.LIMIT ? Number(process.env.LIMIT) : undefined;
 const limit =
   limitValue !== undefined && Number.isInteger(limitValue) && limitValue > 0 ? limitValue : undefined;
+const backfillFrom = Number(process.env.BACKFILL_FROM ?? 1);
+const backfillTo = Number(process.env.BACKFILL_TO ?? Number.MAX_SAFE_INTEGER);
+
+if (!Number.isInteger(backfillFrom) || backfillFrom < 1 || !Number.isInteger(backfillTo) || backfillTo < backfillFrom) {
+  throw new Error("BACKFILL_FROM and BACKFILL_TO must define a valid positive row-number range");
+}
 
 const summary = {
   totalSeriesChecked: 0,
@@ -417,16 +424,67 @@ async function replaceSeriesSeasonsAndEpisodes(localSeries: LocalSeries, realSea
   };
 }
 
+async function insertMissingSeriesSeasonsAndEpisodes(localSeries: LocalSeries, realSeasons: RealSeason[]) {
+  let seasonsInserted = 0;
+  let episodesInserted = 0;
+
+  await db.transaction(async (tx) => {
+    for (const realSeason of realSeasons) {
+      const [insertedSeason] = await tx
+        .insert(seasons)
+        .values({
+          seriesId: localSeries.id,
+          seasonNumber: realSeason.seasonNumber,
+          title: realSeason.title,
+          releaseYear: realSeason.releaseYear,
+          posterUrl: realSeason.posterUrl,
+        })
+        .onConflictDoNothing({ target: [seasons.seriesId, seasons.seasonNumber] })
+        .returning({ id: seasons.id });
+
+      const seasonRow = insertedSeason ?? await tx.query.seasons.findFirst({
+        columns: { id: true },
+        where: (table, { and, eq }) => and(
+          eq(table.seriesId, localSeries.id),
+          eq(table.seasonNumber, realSeason.seasonNumber),
+        ),
+      });
+
+      if (!seasonRow) throw new Error(`Could not resolve season ${realSeason.seasonNumber}`);
+      if (insertedSeason) seasonsInserted += 1;
+
+      if (realSeason.episodes.length > 0) {
+        const insertedEpisodes = await tx
+          .insert(episodes)
+          .values(realSeason.episodes.map((episode) => ({
+            seasonId: seasonRow.id,
+            episodeNumber: episode.episodeNumber,
+            title: episode.title,
+            overview: episode.overview,
+            durationMinutes: episode.durationMinutes,
+            airDate: episode.airDate,
+          })))
+          .onConflictDoNothing({ target: [episodes.seasonId, episodes.episodeNumber] })
+          .returning({ id: episodes.id });
+        episodesInserted += insertedEpisodes.length;
+      }
+    }
+  });
+
+  return { seasonsInserted, episodesInserted };
+}
+
 async function getSeriesToProcess() {
-  return db
+  const records = await db
     .select({
       id: series.id,
       title: series.title,
       releaseYear: series.releaseYear,
     })
     .from(series)
-    .orderBy(asc(series.title))
-    .limit(limit ?? 100000);
+    .orderBy(asc(series.id));
+
+  return records.slice(backfillFrom - 1, Math.min(backfillTo, backfillFrom - 1 + (limit ?? Number.MAX_SAFE_INTEGER)));
 }
 
 async function processSeries(localSeries: LocalSeries) {
@@ -456,12 +514,14 @@ async function processSeries(localSeries: LocalSeries) {
       summary.seasonsInserted += realSeasons.length;
       summary.episodesInserted += episodeCount;
       console.log(
-        `[series dry-run] ${localSeries.title}: would delete ${existingCounts.seasonCount} seasons and ${existingCounts.episodeCount} episodes; would insert ${realSeasons.length} seasons and ${episodeCount} episodes`,
+        `[series dry-run] ${localSeries.title}: existing ${existingCounts.seasonCount} seasons and ${existingCounts.episodeCount} episodes; would ${forceUpdate ? "replace with" : "insert missing from"} ${realSeasons.length} seasons and ${episodeCount} episodes`,
       );
       return;
     }
 
-    const insertedCounts = await replaceSeriesSeasonsAndEpisodes(localSeries, realSeasons);
+    const insertedCounts = forceUpdate
+      ? await replaceSeriesSeasonsAndEpisodes(localSeries, realSeasons)
+      : await insertMissingSeriesSeasonsAndEpisodes(localSeries, realSeasons);
     summary.updatedSeries += 1;
     summary.seasonsInserted += insertedCounts.seasonsInserted;
     summary.episodesInserted += insertedCounts.episodesInserted;
@@ -480,7 +540,7 @@ async function processSeries(localSeries: LocalSeries) {
 
 async function main() {
   console.log("TMDb series seasons and episodes update started");
-  console.log(`Mode: DRY_RUN=${dryRun}, LIMIT=${limit ?? "none"}`);
+  console.log(`Mode: DRY_RUN=${dryRun}, FORCE_SERIES_EPISODE_UPDATE=${forceUpdate}, BACKFILL_FROM=${backfillFrom}, BACKFILL_TO=${backfillTo}, BATCH_SIZE=${limit ?? "none"}`);
 
   if (process.env.TMDB_API_READ_ACCESS_TOKEN && !process.env.TMDB_API_TOKEN) {
     console.log("TMDB_API_TOKEN is not set; using TMDB_API_READ_ACCESS_TOKEN fallback.");
