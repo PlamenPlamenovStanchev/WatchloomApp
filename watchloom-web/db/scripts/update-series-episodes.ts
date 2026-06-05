@@ -102,6 +102,10 @@ const summary = {
   episodesInserted: 0,
 };
 
+pool.on("error", (error) => {
+  console.error(`[database pool] idle client error; continuing with a replacement connection: ${error.message}`);
+});
+
 function normalizeTitle(title: string) {
   return title
     .toLowerCase()
