@@ -11,6 +11,9 @@ type DashboardCardProps = {
 export function DashboardCard({ href, title, description, label, value }: DashboardCardProps) {
   const content = (
     <>
+      <div className="mb-4 flex size-10 items-center justify-center rounded-2xl bg-orange-100 text-sm font-semibold text-orange-800 transition group-hover:rotate-3 group-hover:scale-105 dark:bg-orange-950/40 dark:text-orange-200">
+        {title.slice(0, 1)}
+      </div>
       <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
       <p className="mt-2 min-h-12 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
         {description}
@@ -19,14 +22,16 @@ export function DashboardCard({ href, title, description, label, value }: Dashbo
         <p className="mt-5 text-sm font-medium text-zinc-950 dark:text-zinc-50">{value}</p>
       ) : null}
       {label ? (
-        <p className="mt-5 text-sm font-medium text-zinc-950 dark:text-zinc-50">{label}</p>
+        <p className="mt-5 text-sm font-semibold text-orange-700 transition group-hover:translate-x-1 dark:text-orange-300">
+          {label} →
+        </p>
       ) : null}
     </>
   );
 
   if (!href) {
     return (
-      <div className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+      <div className="watchloom-surface rounded-3xl p-5">
         {content}
       </div>
     );
@@ -35,7 +40,7 @@ export function DashboardCard({ href, title, description, label, value }: Dashbo
   return (
     <Link
       href={href}
-      className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:ring-offset-2 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-700 dark:focus:ring-zinc-100"
+      className="watchloom-surface group rounded-3xl p-5 transition hover:-translate-y-1 hover:border-orange-200 hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-orange-500/15 dark:hover:border-orange-900/60"
     >
       {content}
     </Link>

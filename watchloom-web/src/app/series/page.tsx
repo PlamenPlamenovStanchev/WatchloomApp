@@ -46,15 +46,15 @@ export default async function SeriesPage({ searchParams }: SeriesPageProps) {
     : new Set<number>();
 
   return (
-    <main className="min-h-screen bg-zinc-50 px-4 py-8 text-zinc-950 dark:bg-black dark:text-zinc-50 sm:px-6 lg:px-8">
+    <main className="min-h-screen px-4 py-8 text-zinc-950 dark:text-zinc-50 sm:px-6 lg:px-8">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-8">
         <header className="space-y-3">
-          <p className="text-sm font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+          <p className="watchloom-pill inline-flex rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em]">
             Watchloom
           </p>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Series</h1>
+              <h1 className="watchloom-gradient-text text-3xl font-semibold tracking-tight sm:text-4xl">Series</h1>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-600 dark:text-zinc-400">
                 Browse the public series catalog, filter by genre, or search by title.
               </p>

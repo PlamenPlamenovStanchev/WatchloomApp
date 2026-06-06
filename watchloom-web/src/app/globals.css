@@ -1,8 +1,13 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f7f4ef;
+  --foreground: #18181b;
+  --accent: #f97316;
+  --accent-soft: #fff1e7;
+  --surface: rgba(255, 255, 255, 0.78);
+  --surface-strong: rgba(255, 255, 255, 0.92);
+  --ring: rgba(249, 115, 22, 0.28);
 }
 
 @theme inline {
@@ -14,13 +19,139 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #09090b;
+    --foreground: #f4f4f5;
+    --accent: #fb923c;
+    --accent-soft: rgba(124, 45, 18, 0.28);
+    --surface: rgba(24, 24, 27, 0.72);
+    --surface-strong: rgba(24, 24, 27, 0.9);
+    --ring: rgba(251, 146, 60, 0.26);
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  text-rendering: optimizeLegibility;
+}
+
+body::before {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  content: "";
+  background:
+    radial-gradient(circle at 8% 10%, rgba(251, 146, 60, 0.2), transparent 28rem),
+    radial-gradient(circle at 88% 18%, rgba(244, 114, 182, 0.13), transparent 24rem),
+    radial-gradient(circle at 50% 100%, rgba(20, 184, 166, 0.1), transparent 28rem),
+    linear-gradient(135deg, #fffaf3 0%, #f7f4ef 46%, #f4f4f5 100%);
+}
+
+@media (prefers-color-scheme: dark) {
+  body::before {
+    background:
+      radial-gradient(circle at 10% 8%, rgba(249, 115, 22, 0.18), transparent 26rem),
+      radial-gradient(circle at 85% 12%, rgba(168, 85, 247, 0.14), transparent 24rem),
+      radial-gradient(circle at 50% 100%, rgba(20, 184, 166, 0.1), transparent 28rem),
+      linear-gradient(135deg, #050505 0%, #09090b 48%, #111827 100%);
+  }
+}
+
+::selection {
+  background: rgba(249, 115, 22, 0.28);
+}
+
+@layer utilities {
+  .watchloom-surface {
+    border: 1px solid rgb(228 228 231 / 0.86);
+    background: var(--surface);
+    box-shadow: 0 20px 55px rgb(15 23 42 / 0.08);
+    backdrop-filter: blur(18px);
+  }
+
+  .dark .watchloom-surface {
+    border-color: rgb(63 63 70 / 0.76);
+    box-shadow: 0 20px 70px rgb(0 0 0 / 0.36);
+  }
+
+  .watchloom-button-primary {
+    background: linear-gradient(135deg, #18181b, #3f3f46);
+    color: #fff;
+    box-shadow: 0 14px 30px rgb(24 24 27 / 0.18);
+  }
+
+  .watchloom-button-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 18px 36px rgb(24 24 27 / 0.24);
+  }
+
+  .dark .watchloom-button-primary {
+    background: linear-gradient(135deg, #f4f4f5, #fed7aa);
+    color: #18181b;
+  }
+
+  .watchloom-gradient-text {
+    background: linear-gradient(135deg, #18181b 0%, #9a3412 46%, #0f766e 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .dark .watchloom-gradient-text {
+    background-image: linear-gradient(135deg, #fafafa 0%, #fdba74 48%, #5eead4 100%);
+  }
+
+  .watchloom-pill {
+    border: 1px solid rgb(249 115 22 / 0.18);
+    background: var(--accent-soft);
+    color: #9a3412;
+  }
+
+  .dark .watchloom-pill {
+    color: #fed7aa;
+  }
+
+  .animate-rise {
+    animation: watchloom-rise 520ms ease both;
+  }
+
+  .animate-float-soft {
+    animation: watchloom-float 6s ease-in-out infinite;
+  }
+}
+
+@keyframes watchloom-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes watchloom-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

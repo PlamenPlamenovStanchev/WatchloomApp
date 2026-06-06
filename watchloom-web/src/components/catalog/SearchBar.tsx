@@ -10,7 +10,7 @@ export function SearchBar({ action, q, search, genre }: SearchBarProps) {
   const genreValue = genre?.trim();
 
   return (
-    <form action={action} method="GET" className="flex w-full flex-col gap-3 sm:flex-row">
+    <form action={action} method="GET" className="watchloom-surface flex w-full flex-col gap-3 rounded-2xl p-2 sm:flex-row">
       <label htmlFor="catalog-search" className="sr-only">
         Search by title
       </label>
@@ -20,14 +20,14 @@ export function SearchBar({ action, q, search, genre }: SearchBarProps) {
         type="search"
         defaultValue={searchValue}
         placeholder="Search by title..."
-        className="h-11 min-w-0 flex-1 rounded-md border border-zinc-300 bg-white px-3 text-sm text-zinc-950 outline-none transition placeholder:text-zinc-500 focus:border-zinc-900 focus:ring-2 focus:ring-zinc-900/10 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50 dark:placeholder:text-zinc-500 dark:focus:border-zinc-100 dark:focus:ring-zinc-100/10"
+        className="h-11 min-w-0 flex-1 rounded-xl border border-transparent bg-white/70 px-4 text-sm text-zinc-950 outline-none transition placeholder:text-zinc-500 focus:border-orange-300 focus:ring-4 focus:ring-orange-500/10 dark:bg-black/40 dark:text-zinc-50 dark:placeholder:text-zinc-500"
       />
       {genreValue ? <input type="hidden" name="genre" value={genreValue} /> : null}
       <button
         type="submit"
-        className="h-11 rounded-md bg-zinc-950 px-5 text-sm font-medium text-white transition hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:ring-offset-2 dark:bg-zinc-50 dark:text-zinc-950 dark:hover:bg-zinc-200 dark:focus:ring-zinc-100"
+        className="watchloom-button-primary h-11 rounded-xl px-5 text-sm font-medium transition focus:outline-none focus:ring-4 focus:ring-orange-500/20"
       >
-        Search
+        Search →
       </button>
     </form>
   );

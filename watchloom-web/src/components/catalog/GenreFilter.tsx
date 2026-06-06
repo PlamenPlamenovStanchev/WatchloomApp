@@ -50,10 +50,10 @@ export function GenreFilter({
 }: GenreFilterProps) {
   const selectedGenre = currentGenre?.trim();
   const baseClass =
-    "inline-flex h-9 items-center rounded-md border px-3 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:ring-offset-2 dark:focus:ring-zinc-100";
-  const activeClass = "border-zinc-950 bg-zinc-950 text-white dark:border-zinc-50 dark:bg-zinc-50 dark:text-zinc-950";
+    "inline-flex h-9 items-center rounded-full border px-3 text-sm font-medium transition hover:-translate-y-0.5 focus:outline-none focus:ring-4 focus:ring-orange-500/15";
+  const activeClass = "border-orange-300 bg-orange-100 text-orange-900 shadow-sm shadow-orange-900/5 dark:border-orange-800 dark:bg-orange-950/40 dark:text-orange-200";
   const inactiveClass =
-    "border-zinc-300 text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-900";
+    "border-white/70 bg-white/50 text-zinc-700 hover:border-orange-200 hover:bg-orange-50 dark:border-zinc-800/80 dark:bg-zinc-950/40 dark:text-zinc-300 dark:hover:border-orange-900/60 dark:hover:bg-orange-950/20";
 
   return (
     <nav className="flex flex-wrap gap-2" aria-label="Genre filter">
