@@ -9,6 +9,9 @@ type ApiResponse =
   | {
       success: true;
       message: string;
+      data?: {
+        resetUrl?: string | null;
+      };
     }
   | {
       success: false;
@@ -20,6 +23,7 @@ export function ForgotPasswordForm() {
   const [emailError, setEmailError] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [resetUrl, setResetUrl] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -27,6 +31,7 @@ export function ForgotPasswordForm() {
     setEmailError(null);
     setFormError(null);
     setSuccessMessage(null);
+    setResetUrl(null);
 
     const parsedInput = forgotPasswordSchema.safeParse({ email });
 
@@ -53,6 +58,7 @@ export function ForgotPasswordForm() {
       }
 
       setSuccessMessage(result.message);
+      setResetUrl(result.data?.resetUrl ?? null);
     } catch {
       setFormError("Unable to request reset link right now. Please try again.");
     } finally {
@@ -63,8 +69,16 @@ export function ForgotPasswordForm() {
   return (
     <form className="space-y-5" onSubmit={handleSubmit} noValidate>
       {successMessage ? (
-        <div className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-200">
-          {successMessage}
+        <div className="space-y-2 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-200">
+          <p>{successMessage}</p>
+          {resetUrl ? (
+            <p>
+              Development reset link:{" "}
+              <Link href={resetUrl} className="font-semibold underline underline-offset-4">
+                Open reset password page
+              </Link>
+            </p>
+          ) : null}
         </div>
       ) : null}
 

@@ -1,4 +1,4 @@
-import { errorResponse, messageResponse, validationErrorResponse } from "@/lib/api/response";
+import { errorResponse, validationErrorResponse } from "@/lib/api/response";
 import { forgotPasswordSchema } from "@/lib/validations/auth";
 import {
   PASSWORD_RESET_SUCCESS_MESSAGE,
@@ -16,9 +16,15 @@ export async function POST(request: Request) {
       return validationErrorResponse(parsedInput.error);
     }
 
-    await requestPasswordReset(parsedInput.data.email);
+    const result = await requestPasswordReset(parsedInput.data.email);
 
-    return messageResponse(PASSWORD_RESET_SUCCESS_MESSAGE);
+    return Response.json({
+      success: true,
+      message: PASSWORD_RESET_SUCCESS_MESSAGE,
+      data: {
+        resetUrl: result.resetUrl,
+      },
+    });
   } catch (error) {
     if (error instanceof Error && error.name === "AuthServiceError") {
       return authErrorResponse(error);

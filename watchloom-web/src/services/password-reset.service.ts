@@ -28,7 +28,12 @@ const hashResetToken = (token: string) => {
   return createHash("sha256").update(token).digest("hex");
 };
 
-const getResetUrl = (token: string) => `/reset-password?token=${encodeURIComponent(token)}`;
+const getResetUrl = (token: string) => {
+  const path = `/reset-password?token=${encodeURIComponent(token)}`;
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "");
+
+  return appUrl ? `${appUrl}${path}` : path;
+};
 
 const getExpiresAt = () => {
   const expiresAt = new Date();
@@ -80,7 +85,10 @@ export const requestPasswordReset = async (email: string) => {
     console.log(`[Password reset] Reset URL: ${resetUrl}`);
   }
 
-  return { message: PASSWORD_RESET_SUCCESS_MESSAGE };
+  return {
+    message: PASSWORD_RESET_SUCCESS_MESSAGE,
+    resetUrl: process.env.NODE_ENV !== "production" ? resetUrl : null,
+  };
 };
 
 export const resetPassword = async (token: string, newPassword: string) => {
