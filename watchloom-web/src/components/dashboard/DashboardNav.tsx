@@ -1,5 +1,11 @@
 import { DashboardCard } from "./DashboardCard";
 
+type UserRole = "user" | "editor" | "admin";
+
+type DashboardNavProps = {
+  role: UserRole;
+};
+
 const dashboardLinks = [
   {
     href: "/dashboard/watchlists",
@@ -39,9 +45,46 @@ const dashboardLinks = [
   },
 ];
 
-export function DashboardNav() {
+const getPanelLinks = (role: UserRole) => {
+  if (role === "admin") {
+    return [
+      {
+        href: "/admin",
+        title: "Admin Panel",
+        description: "Manage users, roles, messages, and high-level catalog oversight.",
+        label: "Open admin panel",
+        tone: "admin" as const,
+      },
+      {
+        href: "/editor",
+        title: "Editor Panel",
+        description: "Create and maintain movies, series, seasons, and episodes.",
+        label: "Open editor panel",
+        tone: "editor" as const,
+      },
+    ];
+  }
+
+  if (role === "editor") {
+    return [
+      {
+        href: "/editor",
+        title: "Editor Panel",
+        description: "Create and maintain movies, series, seasons, and episodes.",
+        label: "Open editor panel",
+        tone: "editor" as const,
+      },
+    ];
+  }
+
+  return [];
+};
+
+export function DashboardNav({ role }: DashboardNavProps) {
+  const panelLinks = getPanelLinks(role);
+
   return (
-    <section className="space-y-4" aria-labelledby="dashboard-navigation-heading">
+    <section className="space-y-6" aria-labelledby="dashboard-navigation-heading">
       <div>
         <h2 id="dashboard-navigation-heading" className="text-xl font-semibold tracking-tight">
           Your Watchloom
@@ -50,6 +93,15 @@ export function DashboardNav() {
           These areas are ready for the authenticated features coming next.
         </p>
       </div>
+
+      {panelLinks.length > 0 ? (
+        <div className="grid gap-4 sm:grid-cols-2" aria-label="Role panels">
+          {panelLinks.map((link) => (
+            <DashboardCard key={link.href} {...link} />
+          ))}
+        </div>
+      ) : null}
+
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {dashboardLinks.map((link) => (
           <DashboardCard key={`${link.href}:${link.title}`} {...link} />

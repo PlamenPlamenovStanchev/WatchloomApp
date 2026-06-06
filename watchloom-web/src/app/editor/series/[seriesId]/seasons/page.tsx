@@ -55,7 +55,7 @@ export default async function EditorSeasonsPage({ params }: EditorSeasonsPagePro
         </Link>
       </div>
 
-      <section className="overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+      <section className="watchloom-surface overflow-hidden rounded-3xl">
         {data.seasons.length === 0 ? (
           <p className="px-5 py-10 text-center text-sm text-zinc-600 dark:text-zinc-400">
             No seasons found.

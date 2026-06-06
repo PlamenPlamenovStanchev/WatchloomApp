@@ -60,7 +60,7 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
         </p>
       </div>
 
-      <form action="/admin/users" className="grid gap-3 rounded-lg border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950 sm:grid-cols-[1fr_170px_170px_auto]">
+      <form action="/admin/users" className="watchloom-surface grid gap-3 rounded-3xl p-4 sm:grid-cols-[1fr_170px_170px_auto]">
         <input
           name="q"
           defaultValue={users.search}
@@ -97,7 +97,7 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
         </button>
       </form>
 
-      <section className="overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+      <section className="watchloom-surface overflow-hidden rounded-3xl">
         {users.items.length === 0 ? (
           <p className="px-5 py-10 text-center text-sm text-zinc-600 dark:text-zinc-400">
             No users found.

@@ -1,5 +1,9 @@
 import Link from "next/link";
 
+import { getCurrentUser } from "@/lib/auth/current-user";
+
+type UserRole = "user" | "editor" | "admin";
+
 const featureCards = [
   {
     title: "Movies",
@@ -19,7 +23,42 @@ const featureCards = [
   },
 ];
 
-export default function Home() {
+const getPanelLinks = (role?: UserRole) => {
+  if (role === "admin") {
+    return [
+      {
+        href: "/admin",
+        label: "Admin Panel",
+        className:
+          "bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white shadow-lg shadow-purple-900/20 hover:shadow-xl",
+      },
+      {
+        href: "/editor",
+        label: "Editor Panel",
+        className:
+          "bg-gradient-to-r from-cyan-600 to-teal-500 text-white shadow-lg shadow-cyan-900/20 hover:shadow-xl",
+      },
+    ];
+  }
+
+  if (role === "editor") {
+    return [
+      {
+        href: "/editor",
+        label: "Editor Panel",
+        className:
+          "bg-gradient-to-r from-cyan-600 to-teal-500 text-white shadow-lg shadow-cyan-900/20 hover:shadow-xl",
+      },
+    ];
+  }
+
+  return [];
+};
+
+export default async function Home() {
+  const user = await getCurrentUser();
+  const panelLinks = getPanelLinks(user?.role);
+
   return (
     <main className="relative overflow-hidden text-zinc-950 dark:text-zinc-50">
       <div
@@ -78,6 +117,25 @@ export default function Home() {
               Browse Series
             </Link>
           </div>
+
+          {panelLinks.length > 0 ? (
+            <div className="watchloom-surface max-w-xl rounded-3xl p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-zinc-500 dark:text-zinc-400">
+                Staff access
+              </p>
+              <div className="mt-3 flex flex-col gap-3 sm:flex-row">
+                {panelLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className={`inline-flex h-11 items-center justify-center rounded-full px-5 text-sm font-semibold transition hover:-translate-y-0.5 focus:outline-none focus:ring-4 focus:ring-orange-500/20 ${link.className}`}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ) : null}
         </div>
 
         <div className="mx-auto grid w-full max-w-2xl gap-4 sm:grid-cols-2 lg:max-w-none">

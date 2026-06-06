@@ -79,7 +79,7 @@ export default async function AdminUserDetailPage({
         </p>
       ) : null}
 
-      <dl className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+      <dl className="watchloom-surface rounded-3xl p-5">
         {[
           ["ID", String(user.id)],
           ["Username", user.username],
@@ -104,7 +104,7 @@ export default async function AdminUserDetailPage({
       <section className="grid gap-5 lg:grid-cols-2">
         <form
           action={updateRoleAction}
-          className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-950"
+          className="watchloom-surface rounded-3xl p-5"
         >
           <h3 className="text-lg font-semibold tracking-tight">Change role</h3>
           <label className="mt-4 block text-sm font-medium">
@@ -127,7 +127,7 @@ export default async function AdminUserDetailPage({
           </button>
         </form>
 
-        <div className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+        <div className="watchloom-surface rounded-3xl p-5">
           <h3 className="text-lg font-semibold tracking-tight">Account actions</h3>
           <div className="mt-4 flex flex-wrap gap-3">
             <AdminUserActiveButton action={activateAction} isActive={user.isActive} />

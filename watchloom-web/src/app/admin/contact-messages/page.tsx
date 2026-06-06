@@ -21,7 +21,7 @@ export default async function AdminContactMessagesPage() {
         </p>
       </div>
 
-      <section className="overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+      <section className="watchloom-surface overflow-hidden rounded-3xl">
         {messages.length === 0 ? (
           <p className="px-5 py-10 text-center text-sm text-zinc-600 dark:text-zinc-400">
             No contact messages found.

@@ -92,7 +92,7 @@ export default async function AdminContactMessageDetailPage({
         </p>
       ) : null}
 
-      <article className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+      <article className="watchloom-surface rounded-3xl p-5">
         <dl className="grid gap-4 sm:grid-cols-2">
           <div>
             <dt className="text-sm font-medium text-zinc-500 dark:text-zinc-400">Email</dt>
@@ -132,7 +132,7 @@ export default async function AdminContactMessageDetailPage({
         </div>
       </article>
 
-      <section className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+      <section className="watchloom-surface rounded-3xl p-5">
         <h3 className="text-lg font-semibold tracking-tight">Actions</h3>
         <div className="mt-4 flex flex-wrap gap-3">
           <form action={markReadAction}>

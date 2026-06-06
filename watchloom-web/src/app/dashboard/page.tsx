@@ -1,5 +1,14 @@
-import { DashboardNav } from "@/components/dashboard/DashboardNav";
+import { redirect } from "next/navigation";
 
-export default function DashboardPage() {
-  return <DashboardNav />;
+import { DashboardNav } from "@/components/dashboard/DashboardNav";
+import { getCurrentUser } from "@/lib/auth/current-user";
+
+export default async function DashboardPage() {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    redirect("/login?next=/dashboard");
+  }
+
+  return <DashboardNav role={user.role} />;
 }
