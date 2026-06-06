@@ -3,6 +3,8 @@ import { GenreFilter } from "@/components/catalog/GenreFilter";
 import { Pagination } from "@/components/catalog/Pagination";
 import { SearchBar } from "@/components/catalog/SearchBar";
 import { SeriesCard } from "@/components/catalog/SeriesCard";
+import { getCurrentUser } from "@/lib/auth/current-user";
+import { getUserFavouriteMediaIds } from "@/services/favourite.service";
 import { getGenres } from "@/services/genre.service";
 import { getSeries } from "@/services/series.service";
 
@@ -34,6 +36,14 @@ export default async function SeriesPage({ searchParams }: SeriesPageProps) {
     getSeries({ page, pageSize: PAGE_SIZE, search: q, genre }),
     getGenres(),
   ]);
+  const user = await getCurrentUser();
+  const favouriteSeriesIds = user
+    ? await getUserFavouriteMediaIds(
+        user.id,
+        "series",
+        seriesResults.items.map((show) => show.id),
+      )
+    : new Set<number>();
 
   return (
     <main className="min-h-screen bg-zinc-50 px-4 py-8 text-zinc-950 dark:bg-black dark:text-zinc-50 sm:px-6 lg:px-8">
@@ -67,11 +77,13 @@ export default async function SeriesPage({ searchParams }: SeriesPageProps) {
             {seriesResults.items.map((show) => (
               <SeriesCard
                 key={show.id}
+                id={show.id}
                 title={show.title}
                 slug={show.slug}
                 posterUrl={show.posterUrl}
                 firstAirDate={show.firstAirDate}
                 genres={show.genres}
+                isFavourite={favouriteSeriesIds.has(show.id)}
               />
             ))}
           </CatalogGrid>

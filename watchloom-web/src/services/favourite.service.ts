@@ -1,4 +1,4 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
 
 import { db } from "@/db";
 import { favourites, movies, series } from "@/db/schema";
@@ -79,6 +79,30 @@ export const getUserFavouriteForMedia = async (
     .limit(1);
 
   return favourite ?? null;
+};
+
+export const getUserFavouriteMediaIds = async (
+  userId: number,
+  mediaType: MediaType,
+  mediaIds: number[],
+) => {
+  if (mediaIds.length === 0) {
+    return new Set<number>();
+  }
+
+  const mediaColumn = mediaType === "movie" ? favourites.movieId : favourites.seriesId;
+  const rows = await db
+    .select({ mediaId: mediaColumn })
+    .from(favourites)
+    .where(
+      and(
+        eq(favourites.userId, userId),
+        eq(favourites.mediaType, mediaType),
+        inArray(mediaColumn, mediaIds),
+      ),
+    );
+
+  return new Set(rows.flatMap((row) => (row.mediaId === null ? [] : [row.mediaId])));
 };
 
 export const addFavourite = async (userId: number, mediaType: MediaType, mediaId: number) => {

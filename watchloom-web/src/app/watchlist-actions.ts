@@ -75,8 +75,11 @@ export async function addMovieToWatchlist(
     redirect(`/login?next=${encodeURIComponent(redirectPath)}`);
   }
 
+  let watchlistId: number;
+
   try {
     const input = getWatchlistInput(formData);
+    watchlistId = input.watchlistId;
 
     await addWatchlistItem(user.id, input.watchlistId, {
       mediaType: "movie",
@@ -97,7 +100,7 @@ export async function addMovieToWatchlist(
     throw error;
   }
 
-  redirectWithMessage(redirectPath, "watchlistSuccess", "Added to watchlist.");
+  redirect(`/dashboard/watchlists/${watchlistId}`);
 }
 
 export async function addSeriesToWatchlist(
@@ -111,8 +114,11 @@ export async function addSeriesToWatchlist(
     redirect(`/login?next=${encodeURIComponent(redirectPath)}`);
   }
 
+  let watchlistId: number;
+
   try {
     const input = getWatchlistInput(formData);
+    watchlistId = input.watchlistId;
 
     await addWatchlistItem(user.id, input.watchlistId, {
       mediaType: "series",
@@ -133,5 +139,5 @@ export async function addSeriesToWatchlist(
     throw error;
   }
 
-  redirectWithMessage(redirectPath, "watchlistSuccess", "Added to watchlist.");
+  redirect(`/dashboard/watchlists/${watchlistId}`);
 }

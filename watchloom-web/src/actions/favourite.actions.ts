@@ -7,6 +7,7 @@ import { getCurrentUser } from "@/lib/auth/current-user";
 import {
   addFavourite,
   FavouriteServiceError,
+  getUserFavouriteForMedia,
   removeFavourite,
   removeFavouriteForMedia,
 } from "@/services/favourite.service";
@@ -57,6 +58,30 @@ export async function removeFavouriteForMediaAction(
 ) {
   const user = await getUser(path);
   await removeFavouriteForMedia(user.id, mediaType, mediaId);
+
+  revalidatePath(path);
+  revalidatePath("/dashboard/favourites");
+}
+
+export async function toggleFavouriteForMediaAction(
+  mediaType: MediaType,
+  mediaId: number,
+  path: string,
+) {
+  const user = await getUser(path);
+  const favourite = await getUserFavouriteForMedia(user.id, mediaType, mediaId);
+
+  if (favourite) {
+    await removeFavouriteForMedia(user.id, mediaType, mediaId);
+  } else {
+    try {
+      await addFavourite(user.id, mediaType, mediaId);
+    } catch (error) {
+      if (!(error instanceof FavouriteServiceError && error.code === "DUPLICATE_FAVOURITE")) {
+        throw error;
+      }
+    }
+  }
 
   revalidatePath(path);
   revalidatePath("/dashboard/favourites");

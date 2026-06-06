@@ -17,6 +17,7 @@ export function AddToWatchlistForm({
 }: AddToWatchlistFormProps) {
   return (
     <section
+      id="add-to-watchlist"
       aria-labelledby="add-to-watchlist-heading"
       className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-950"
     >

@@ -3,6 +3,8 @@ import { GenreFilter } from "@/components/catalog/GenreFilter";
 import { MovieCard } from "@/components/catalog/MovieCard";
 import { Pagination } from "@/components/catalog/Pagination";
 import { SearchBar } from "@/components/catalog/SearchBar";
+import { getCurrentUser } from "@/lib/auth/current-user";
+import { getUserFavouriteMediaIds } from "@/services/favourite.service";
 import { getGenres } from "@/services/genre.service";
 import { getMovies } from "@/services/movie.service";
 
@@ -34,6 +36,14 @@ export default async function MoviesPage({ searchParams }: MoviesPageProps) {
     getMovies({ page, pageSize: PAGE_SIZE, search: q, genre }),
     getGenres(),
   ]);
+  const user = await getCurrentUser();
+  const favouriteMovieIds = user
+    ? await getUserFavouriteMediaIds(
+        user.id,
+        "movie",
+        movieResults.items.map((movie) => movie.id),
+      )
+    : new Set<number>();
 
   return (
     <main className="min-h-screen bg-zinc-50 px-4 py-8 text-zinc-950 dark:bg-black dark:text-zinc-50 sm:px-6 lg:px-8">
@@ -67,11 +77,13 @@ export default async function MoviesPage({ searchParams }: MoviesPageProps) {
             {movieResults.items.map((movie) => (
               <MovieCard
                 key={movie.id}
+                id={movie.id}
                 title={movie.title}
                 slug={movie.slug}
                 posterUrl={movie.posterUrl}
                 releaseDate={movie.releaseDate}
                 genres={movie.genres}
+                isFavourite={favouriteMovieIds.has(movie.id)}
               />
             ))}
           </CatalogGrid>
