@@ -1,6 +1,6 @@
 export type UserRole = "user" | "editor" | "admin";
 
-const authenticatedPathPrefixes = ["/dashboard", "/watchlists", "/favourites", "/reviews"];
+const authenticatedPathPrefixes = ["/dashboard", "/watchlists", "/favourites", "/reviews", "/docs"];
 
 export const isEditorPath = (pathname: string) => {
   return pathname === "/editor" || pathname.startsWith("/editor/");

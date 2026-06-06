@@ -11,6 +11,7 @@ const dashboardLinks = [
   { href: "/dashboard/favourites", label: "Favourites", icon: "♥" },
   { href: "/dashboard/reviews", label: "Reviews", icon: "★" },
   { href: "/dashboard/planned", label: "Planned Watching", icon: "◷" },
+  { href: "/docs", label: "API Docs", icon: "API" },
   { href: "/movies", label: "Browse Movies", icon: "▶" },
   { href: "/series", label: "Browse Series", icon: "▦" },
 ];

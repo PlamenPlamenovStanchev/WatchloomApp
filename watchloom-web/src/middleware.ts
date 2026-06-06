@@ -57,6 +57,7 @@ export const config = {
     "/watchlists/:path*",
     "/favourites/:path*",
     "/reviews/:path*",
+    "/docs/:path*",
     "/editor/:path*",
     "/admin/:path*",
     "/login",

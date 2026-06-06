@@ -45,6 +45,12 @@ export async function PublicHeader() {
                 >
                   Dashboard
                 </Link>
+                <Link
+                  href="/docs"
+                  className="rounded-full px-3 py-2 text-sm font-medium text-zinc-700 transition hover:bg-orange-50 hover:text-orange-700 dark:text-zinc-300 dark:hover:bg-orange-950/30 dark:hover:text-orange-200"
+                >
+                  Docs
+                </Link>
                 <LogoutButton />
               </>
             ) : (
@@ -84,6 +90,12 @@ export async function PublicHeader() {
                   className="rounded-full px-3 py-2 text-sm font-medium text-zinc-700 transition hover:bg-orange-50 hover:text-orange-700 dark:text-zinc-300 dark:hover:bg-orange-950/30 dark:hover:text-orange-200"
                 >
                   Dashboard
+                </Link>
+                <Link
+                  href="/docs"
+                  className="rounded-full px-3 py-2 text-sm font-medium text-zinc-700 transition hover:bg-orange-50 hover:text-orange-700 dark:text-zinc-300 dark:hover:bg-orange-950/30 dark:hover:text-orange-200"
+                >
+                  Docs
                 </Link>
                 <LogoutButton />
               </>
