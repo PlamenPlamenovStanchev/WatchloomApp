@@ -138,18 +138,17 @@ export async function updateWatchlistItemAction(
   const notes = getStringValue(formData, "notes");
   const plannedWatchAtValue = getStringValue(formData, "plannedWatchAt");
   const plannedWatchAt = plannedWatchAtValue ? plannedWatchAtValue : null;
+  const validStatus =
+    status === "watched" || status === "watching" || status === "to_watch" ? status : undefined;
 
   await assertOwnedItemInWatchlist(user.id, watchlistId, watchlistItemId);
 
   try {
     const item = await updateWatchlistItem(user.id, watchlistItemId, {
-      status:
-        status === "watched" || status === "watching" || status === "to_watch"
-          ? status
-          : undefined,
+      status: validStatus,
       rating,
       notes,
-      plannedWatchAt,
+      plannedWatchAt: validStatus && validStatus !== "to_watch" ? null : plannedWatchAt,
     });
 
     if (!item || item.watchlistId !== watchlistId) {
@@ -158,6 +157,13 @@ export async function updateWatchlistItemAction(
 
     revalidatePath(`/dashboard/watchlists/${watchlistId}`);
     revalidatePath("/dashboard/planned");
+
+    return {
+      status: item.status,
+      rating: item.rating,
+      plannedWatchAt: item.plannedWatchAt,
+      notes: item.notes,
+    };
   } catch (error) {
     if (error instanceof WatchlistServiceError) {
       redirect(

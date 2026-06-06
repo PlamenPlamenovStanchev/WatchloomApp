@@ -1,10 +1,26 @@
+"use client";
+
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { type FormEvent, useState } from "react";
 
 import type { WatchlistItemWithMedia } from "@/services/watchlist.service";
 
 type WatchlistItemManagerProps = {
   item: WatchlistItemWithMedia;
-  updateAction: (formData: FormData) => void | Promise<void>;
+  updateAction: (formData: FormData) =>
+    | {
+        status: WatchlistItemWithMedia["status"];
+        rating: number | null;
+        plannedWatchAt: Date | string | null;
+        notes: string | null;
+      }
+    | Promise<{
+        status: WatchlistItemWithMedia["status"];
+        rating: number | null;
+        plannedWatchAt: Date | string | null;
+        notes: string | null;
+      }>;
   removeAction: () => void | Promise<void>;
 };
 
@@ -22,17 +38,54 @@ const formatDateTimeLocal = (value: Date | string | null) => {
   return date.toISOString().slice(0, 16);
 };
 
+const getStringValue = (formData: FormData, key: string) => {
+  const value = formData.get(key);
+
+  return typeof value === "string" ? value : "";
+};
+
 export function WatchlistItemManager({
   item,
   updateAction,
   removeAction,
 }: WatchlistItemManagerProps) {
+  const router = useRouter();
+  const [isSaving, setIsSaving] = useState(false);
+  const [status, setStatus] = useState(item.status);
+  const [rating, setRating] = useState(item.rating ? String(item.rating) : "");
+  const [plannedWatchAt, setPlannedWatchAt] = useState(formatDateTimeLocal(item.plannedWatchAt));
+  const [notes, setNotes] = useState(item.notes ?? "");
+
   const href =
     item.media && item.mediaType === "movie"
       ? `/movies/${item.media.slug}`
       : item.media
         ? `/series/${item.media.slug}`
         : null;
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const formData = new FormData(event.currentTarget);
+
+    setStatus(getStringValue(formData, "status") as typeof item.status);
+    setRating(getStringValue(formData, "rating"));
+    setPlannedWatchAt(getStringValue(formData, "plannedWatchAt"));
+    setNotes(getStringValue(formData, "notes"));
+    setIsSaving(true);
+
+    try {
+      const updatedItem = await updateAction(formData);
+
+      setStatus(updatedItem.status);
+      setRating(updatedItem.rating ? String(updatedItem.rating) : "");
+      setPlannedWatchAt(formatDateTimeLocal(updatedItem.plannedWatchAt));
+      setNotes(updatedItem.notes ?? "");
+      router.refresh();
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <li className="p-4">
@@ -63,12 +116,23 @@ export function WatchlistItemManager({
           </form>
         </div>
 
-        <form action={updateAction} className="grid gap-3 lg:grid-cols-[160px_140px_220px_1fr_auto]">
+        <form
+          onSubmit={handleSubmit}
+          className="grid gap-3 lg:grid-cols-[160px_140px_220px_1fr_auto]"
+        >
           <label className="grid gap-1 text-sm">
             <span className="font-medium text-zinc-700 dark:text-zinc-200">Status</span>
             <select
               name="status"
-              defaultValue={item.status}
+              value={status}
+              onChange={(event) => {
+                const nextStatus = event.target.value as typeof item.status;
+
+                setStatus(nextStatus);
+                if (nextStatus !== "to_watch") {
+                  setPlannedWatchAt("");
+                }
+              }}
               className="rounded-md border border-zinc-300 bg-white px-3 py-2 outline-none focus:border-zinc-950 focus:ring-2 focus:ring-zinc-950/10 dark:border-zinc-700 dark:bg-black"
             >
               <option value="to_watch">To watch</option>
@@ -81,7 +145,8 @@ export function WatchlistItemManager({
             <span className="font-medium text-zinc-700 dark:text-zinc-200">Rating</span>
             <select
               name="rating"
-              defaultValue={item.rating ?? ""}
+              value={rating}
+              onChange={(event) => setRating(event.target.value)}
               className="rounded-md border border-zinc-300 bg-white px-3 py-2 outline-none focus:border-zinc-950 focus:ring-2 focus:ring-zinc-950/10 dark:border-zinc-700 dark:bg-black"
             >
               <option value="">None</option>
@@ -98,7 +163,8 @@ export function WatchlistItemManager({
             <input
               name="plannedWatchAt"
               type="datetime-local"
-              defaultValue={formatDateTimeLocal(item.plannedWatchAt)}
+              value={plannedWatchAt}
+              onChange={(event) => setPlannedWatchAt(event.target.value)}
               className="rounded-md border border-zinc-300 bg-white px-3 py-2 outline-none focus:border-zinc-950 focus:ring-2 focus:ring-zinc-950/10 dark:border-zinc-700 dark:bg-black"
             />
           </label>
@@ -108,7 +174,8 @@ export function WatchlistItemManager({
             <input
               name="notes"
               type="text"
-              defaultValue={item.notes ?? ""}
+              value={notes}
+              onChange={(event) => setNotes(event.target.value)}
               className="rounded-md border border-zinc-300 bg-white px-3 py-2 outline-none focus:border-zinc-950 focus:ring-2 focus:ring-zinc-950/10 dark:border-zinc-700 dark:bg-black"
             />
           </label>
@@ -116,9 +183,10 @@ export function WatchlistItemManager({
           <div className="flex items-end">
             <button
               type="submit"
+              disabled={isSaving}
               className="w-full rounded-md bg-zinc-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-950 focus:ring-offset-2 dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-zinc-200"
             >
-              Save
+              {isSaving ? "Saving..." : "Save"}
             </button>
           </div>
         </form>
