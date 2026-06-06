@@ -106,6 +106,11 @@ export function WatchlistItemManager({
           <form
             action={removeAction}
             className="sm:text-right"
+            onSubmit={(event) => {
+              if (!window.confirm("Remove this item from your watchlist?")) {
+                event.preventDefault();
+              }
+            }}
           >
             <button
               type="submit"
