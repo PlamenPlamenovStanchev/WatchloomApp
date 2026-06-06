@@ -2,19 +2,40 @@ name: Build and Test
 
 on:
   push:
-    branches: [ "main" ]
   pull_request:
-    branches: [ "main" ]
   workflow_dispatch:
-     
 
 env:
-  NODE_VERSION: "20.x"
+  NODE_VERSION: "20.19.4"
+  TEST_DATABASE_URL: "postgresql://postgres:postgres@127.0.0.1:5432/watchloom_test"
+  JWT_SECRET: "watchloom-ci-test-secret"
+  NEXT_PUBLIC_APP_URL: "http://127.0.0.1:3100"
+  TMDB_API_KEY: "dummy-key"
+  TMDB_API_TOKEN: "dummy-token"
+  TMDB_API_READ_ACCESS_TOKEN: "dummy-read-token"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   validate:
-    name: Validation & Unit Tests
+    name: Typecheck, Lint, Unit Tests, Build
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: watchloom_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d watchloom_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -23,38 +44,53 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: npm
 
       - name: Install dependencies
-        run: rm -f package-lock.json && npm install
+        run: npm ci
 
-      - name: Typecheck
+      - name: Typecheck web
         working-directory: ./watchloom-web
         run: npx tsc --noEmit
 
-      - name: Lint
-        working-directory: ./watchloom-web
-        run: npm run lint
+      - name: Typecheck shared
+        run: npm run typecheck --workspace watchloom-shared
 
-      - name: Unit Tests
-        working-directory: ./watchloom-web
-        run: npm run test:unit --if-present || npx jest --testPathIgnorePatterns="integration|e2e"
+      - name: Lint web
+        run: npm run lint --workspace watchloom-web
 
-      - name: Build Web App
+      - name: Unit tests
+        run: npm run test --workspace watchloom-web -- --runInBand
+
+      - name: Migrate build database
         working-directory: ./watchloom-web
         env:
-          # Use dummy URLs for next build step if the secret is unavailable locally or in PRs
-          DATABASE_URL: ${{ secrets.TEST_DATABASE_URL || 'postgresql://dummy:dummy@localhost:5432/dummy' }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET || 'dummy-jwt-secret' }}
-          TMDB_API_KEY: "dummy-key-to-avoid-errors"
-        run: npm run build
+          DATABASE_URL: ${{ env.TEST_DATABASE_URL }}
+        run: npm run db:migrate
+
+      - name: Build web app
+        env:
+          DATABASE_URL: ${{ env.TEST_DATABASE_URL }}
+        run: npm run build --workspace watchloom-web
 
   integration:
     name: Integration Tests
     runs-on: ubuntu-latest
     needs: validate
-    env:
-      TEST_DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: watchloom_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d watchloom_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -63,32 +99,35 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: npm
 
       - name: Install dependencies
-        run: rm -f package-lock.json && npm install
+        run: npm ci
 
-      - name: Reset DB & Migrate
+      - name: Run integration tests
         working-directory: ./watchloom-web
-        if: env.TEST_DATABASE_URL != ''
         env:
           DATABASE_URL: ${{ env.TEST_DATABASE_URL }}
-        run: npm run db:migrate
-
-      - name: Integration Tests
-        working-directory: ./watchloom-web
-        if: env.TEST_DATABASE_URL != ''
-        env:
-          DATABASE_URL: ${{ env.TEST_DATABASE_URL }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET || 'dummy-jwt-secret' }}
-        run: npm run test:integration --if-present || npx jest --testMatch="**/integration/**/*.test.ts"
+        run: npm run test:integration -- --runInBand
 
   e2e:
     name: Playwright E2E Tests
     runs-on: ubuntu-latest
     needs: validate
-    env:
-      TEST_DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: watchloom_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d watchloom_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -97,30 +136,18 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: npm
 
       - name: Install dependencies
-        run: rm -f package-lock.json && npm install
+        run: npm ci
 
-      - name: Install Playwright Browsers
+      - name: Install Playwright browsers
         working-directory: ./watchloom-web
-        run: npx playwright install --with-deps
+        run: npx playwright install --with-deps chromium
 
-      - name: Setup Test DB (Migrate & Seed)
+      - name: Run E2E tests
         working-directory: ./watchloom-web
-        if: env.TEST_DATABASE_URL != ''
         env:
           DATABASE_URL: ${{ env.TEST_DATABASE_URL }}
-        run: |
-          npm run db:migrate
-          npm run db:seed
-
-      - name: Run E2E Tests
-        working-directory: ./watchloom-web
-        if: env.TEST_DATABASE_URL != ''
-        env:
-          DATABASE_URL: ${{ env.TEST_DATABASE_URL }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET || 'dummy-jwt-secret' }}
-          # Expose mock variables to avoid external API calls in E2E
-          TMDB_API_KEY: "dummy-key-to-avoid-errors"
-        run: npm run test:e2e --if-present || npx playwright test
+          WATCHLOOM_ALLOW_TEST_DATABASE_AS_DATABASE_URL: "true"
+        run: npm run test:e2e
