@@ -20,7 +20,7 @@ test.describe("public catalog", () => {
     await page.getByRole("button", { name: /search/i }).click();
 
     await expect(page).toHaveURL(/q=arrival/);
-    await expect(page.getByRole("link", { name: /Arrival/i })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Arrival", exact: true })).toBeVisible();
   });
 
   test("anonymous user can view movie details", async ({ page }) => {

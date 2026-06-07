@@ -40,8 +40,9 @@ test.describe("watchlists, favourites, and reviews", () => {
     await page.getByRole("button", { name: "Save" }).click();
     await expect(page.getByLabel("Status")).toHaveValue("watched");
 
+    page.once("dialog", (dialog) => dialog.accept());
     await page.getByRole("button", { name: "Remove" }).click();
-    await expect(page.getByText("No items yet")).toBeVisible();
+    await expect(page.getByRole("link", { name: "Arrival" })).toHaveCount(0);
 
     page.once("dialog", (dialog) => dialog.accept());
     await page.getByRole("button", { name: "Delete" }).click();
