@@ -27,6 +27,20 @@ const requireEditor = async () => {
   return user;
 };
 
+const requireEditorForPath = async (nextPath: string) => {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    redirect(`/login?next=${encodeURIComponent(nextPath)}`);
+  }
+
+  if (user.role !== "editor" && user.role !== "admin") {
+    redirect("/forbidden");
+  }
+
+  return user;
+};
+
 const getString = (formData: FormData, key: string) => {
   const value = formData.get(key);
 
@@ -132,4 +146,20 @@ export async function deleteEditorMovieAction(movieIdValue: string) {
 
   revalidatePath("/editor/movies");
   redirect("/editor/movies");
+}
+
+export async function deleteMovieFromDetailAction(movieIdValue: string, slug: string) {
+  await requireEditorForPath(`/movies/${slug}`);
+
+  const movieId = parseMovieId(movieIdValue);
+  const deleted = await deleteEditorMovie(movieId);
+
+  if (!deleted) {
+    notFound();
+  }
+
+  revalidatePath("/movies");
+  revalidatePath(`/movies/${slug}`);
+  revalidatePath("/editor/movies");
+  redirect("/movies");
 }

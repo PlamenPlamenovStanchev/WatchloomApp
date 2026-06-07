@@ -27,6 +27,20 @@ const requireEditor = async () => {
   return user;
 };
 
+const requireEditorForPath = async (nextPath: string) => {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    redirect(`/login?next=${encodeURIComponent(nextPath)}`);
+  }
+
+  if (user.role !== "editor" && user.role !== "admin") {
+    redirect("/forbidden");
+  }
+
+  return user;
+};
+
 const getString = (formData: FormData, key: string) => {
   const value = formData.get(key);
 
@@ -132,4 +146,20 @@ export async function deleteEditorSeriesAction(seriesIdValue: string) {
 
   revalidatePath("/editor/series");
   redirect("/editor/series");
+}
+
+export async function deleteSeriesFromDetailAction(seriesIdValue: string, slug: string) {
+  await requireEditorForPath(`/series/${slug}`);
+
+  const seriesId = parseSeriesId(seriesIdValue);
+  const deleted = await deleteEditorSeries(seriesId);
+
+  if (!deleted) {
+    notFound();
+  }
+
+  revalidatePath("/series");
+  revalidatePath(`/series/${slug}`);
+  revalidatePath("/editor/series");
+  redirect("/series");
 }

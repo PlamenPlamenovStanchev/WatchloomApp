@@ -9,7 +9,7 @@ import { GET as getMovieBySlug } from "@/app/api/movies/[slug]/route";
 import { GET as getMovies } from "@/app/api/movies/route";
 import { GET as getSeriesBySlug } from "@/app/api/series/[slug]/route";
 import { GET as getSeries } from "@/app/api/series/route";
-import { users } from "@/db/schema";
+import { users, watchlists } from "@/db/schema";
 import { canAccessPath } from "@/lib/auth/permissions";
 import { loginUser } from "@/services/auth.service";
 import {
@@ -226,6 +226,21 @@ describe("watchlist service integration with real DB", () => {
 
     expect(updated?.name).toBe("Updated Integration List");
     await expect(deleteWatchlist(seed.users.regularUser.id, created.id)).resolves.toBe(true);
+  });
+
+  it("deletes an owned default watchlist", async () => {
+    const defaultWatchlist = await createWatchlist(seed.users.secondUser.id, {
+      name: "Default Integration List",
+      description: "Default watchlist created for deletion coverage.",
+    });
+
+    await testDb
+      .update(watchlists)
+      .set({ isDefault: true })
+      .where(eq(watchlists.id, defaultWatchlist.id));
+
+    await expect(deleteWatchlist(seed.users.secondUser.id, defaultWatchlist.id)).resolves.toBe(true);
+    await expect(getWatchlistById(seed.users.secondUser.id, defaultWatchlist.id)).resolves.toBeNull();
   });
 
   it("adds, updates, and removes movie/series items", async () => {

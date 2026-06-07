@@ -135,6 +135,7 @@ export const registerUser = async (input: RegisterInput): Promise<SafeUser> => {
       userId: createdUser.id,
       name: "My Watchlist",
       description: "Default watchlist for movies and series.",
+      isDefault: true,
     });
 
     return toSafeUser(createdUser);

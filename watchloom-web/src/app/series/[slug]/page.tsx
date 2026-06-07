@@ -5,8 +5,10 @@ import {
   addFavouriteAction,
   removeFavouriteForMediaAction,
 } from "@/actions/favourite.actions";
+import { deleteSeriesFromDetailAction } from "@/actions/editor-series.actions";
 import { createReviewAction, updateReviewAction } from "@/actions/review.actions";
 import { addSeriesToWatchlist } from "@/app/watchlist-actions";
+import { DeleteEditorSeriesButton } from "@/components/editor/DeleteEditorSeriesButton";
 import { ReviewForm } from "@/components/reviews/ReviewForm";
 import { ReviewList } from "@/components/reviews/ReviewList";
 import { AddToWatchlistForm } from "@/components/watchlists/AddToWatchlistForm";
@@ -89,6 +91,8 @@ export default async function SeriesDetailPage({ params, searchParams }: SeriesD
   const reviewAction = userReview
     ? updateReviewAction.bind(null, userReview.id, `/series/${show.slug}`)
     : createReviewAction.bind(null, "series", show.id, `/series/${show.slug}`);
+  const canManageCatalog = user?.role === "editor" || user?.role === "admin";
+  const deleteSeriesAction = deleteSeriesFromDetailAction.bind(null, String(show.id), show.slug);
   const description = show.overview;
   const releaseYear = getYear(show.firstAirDate, show.releaseYear);
   const platform = show.network;
@@ -136,7 +140,20 @@ export default async function SeriesDetailPage({ params, searchParams }: SeriesD
               ))}
             </div>
             <div>
-              <h1 className="text-3xl font-semibold tracking-tight sm:text-5xl">{show.title}</h1>
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <h1 className="text-3xl font-semibold tracking-tight sm:text-5xl">{show.title}</h1>
+                {canManageCatalog ? (
+                  <div className="flex shrink-0 flex-wrap gap-2">
+                    <Link
+                      href={`/editor/series/${show.id}/edit`}
+                      className="rounded-md border border-zinc-200 px-3 py-1.5 text-sm font-medium transition hover:bg-zinc-100 focus:outline-none focus:ring-2 focus:ring-zinc-950 focus:ring-offset-2 dark:border-zinc-800 dark:hover:bg-zinc-900 dark:focus:ring-zinc-100"
+                    >
+                      Edit
+                    </Link>
+                    <DeleteEditorSeriesButton action={deleteSeriesAction} />
+                  </div>
+                ) : null}
+              </div>
               {description ? (
                 <p className="mt-4 max-w-3xl text-base leading-7 text-zinc-700 dark:text-zinc-300">
                   {description}
