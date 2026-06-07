@@ -46,6 +46,16 @@ const assertSeasonContext = async (seriesId: number, seasonId: number) => {
   return context;
 };
 
+const assertSeasonExists = async (seasonId: number) => {
+  const [season] = await db.select().from(seasons).where(eq(seasons.id, seasonId)).limit(1);
+
+  if (!season) {
+    throw new EditorEpisodeServiceError("Season was not found.", "SEASON_NOT_FOUND");
+  }
+
+  return season;
+};
+
 const assertUniqueEpisodeNumber = async (
   seasonId: number,
   episodeNumber: number,
@@ -166,6 +176,66 @@ export const deleteEditorEpisode = async (
   episodeId: number,
 ) => {
   await assertSeasonContext(seriesId, seasonId);
+
+  const [deleted] = await db
+    .delete(episodes)
+    .where(and(eq(episodes.id, episodeId), eq(episodes.seasonId, seasonId)))
+    .returning({ id: episodes.id });
+
+  return Boolean(deleted);
+};
+
+export const createEpisode = async (seasonId: number, input: EditorEpisodeInput) => {
+  await assertSeasonExists(seasonId);
+  await assertUniqueEpisodeNumber(seasonId, input.episodeNumber);
+
+  try {
+    const [episode] = await db
+      .insert(episodes)
+      .values({ seasonId, ...toEpisodeValues(input) })
+      .returning();
+
+    return episode;
+  } catch (error) {
+    if (isUniqueConstraintError(error)) {
+      throw new EditorEpisodeServiceError(
+        "An episode with this number already exists for this season.",
+        "DUPLICATE_EPISODE",
+      );
+    }
+    throw error;
+  }
+};
+
+export const updateEpisode = async (
+  seasonId: number,
+  episodeId: number,
+  input: EditorEpisodeInput,
+) => {
+  await assertSeasonExists(seasonId);
+  await assertUniqueEpisodeNumber(seasonId, input.episodeNumber, episodeId);
+
+  try {
+    const [episode] = await db
+      .update(episodes)
+      .set({ ...toEpisodeValues(input), updatedAt: new Date() })
+      .where(and(eq(episodes.id, episodeId), eq(episodes.seasonId, seasonId)))
+      .returning();
+
+    return episode ?? null;
+  } catch (error) {
+    if (isUniqueConstraintError(error)) {
+      throw new EditorEpisodeServiceError(
+        "An episode with this number already exists for this season.",
+        "DUPLICATE_EPISODE",
+      );
+    }
+    throw error;
+  }
+};
+
+export const deleteEpisode = async (seasonId: number, episodeId: number) => {
+  await assertSeasonExists(seasonId);
 
   const [deleted] = await db
     .delete(episodes)

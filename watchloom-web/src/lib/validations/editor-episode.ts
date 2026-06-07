@@ -35,4 +35,7 @@ export const editorEpisodeSchema = z.object({
   airDate: optionalDate,
 });
 
+export const episodeCreateSchema = editorEpisodeSchema;
+export const episodeUpdateSchema = editorEpisodeSchema;
+
 export type EditorEpisodeInput = z.infer<typeof editorEpisodeSchema>;

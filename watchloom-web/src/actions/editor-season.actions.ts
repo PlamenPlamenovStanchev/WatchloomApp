@@ -6,6 +6,7 @@ import { notFound, redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { getFirstValidationMessage } from "@/lib/validations/common";
 import { editorSeasonSchema } from "@/lib/validations/editor-season";
+import { getEditorSeriesById } from "@/services/editor-series.service";
 import {
   createEditorSeason,
   deleteEditorSeason,
@@ -27,6 +28,20 @@ const requireEditor = async () => {
   return user;
 };
 
+const requireEditorForPath = async (nextPath: string) => {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    redirect(`/login?next=${encodeURIComponent(nextPath)}`);
+  }
+
+  if (user.role !== "editor" && user.role !== "admin") {
+    redirect("/forbidden");
+  }
+
+  return user;
+};
+
 const getString = (formData: FormData, key: string) => {
   const value = formData.get(key);
 
@@ -38,7 +53,6 @@ const parseSeasonFormData = (formData: FormData) => {
     seasonNumber: getString(formData, "seasonNumber"),
     title: getString(formData, "title"),
     releaseYear: getString(formData, "releaseYear"),
-    posterUrl: getString(formData, "posterUrl"),
   });
 };
 
@@ -70,14 +84,12 @@ export async function createEditorSeasonAction(seriesIdValue: string, formData: 
   const input = parsed.data!;
 
   try {
-    const season = await createEditorSeason(seriesId, input);
+    await createEditorSeason(seriesId, input);
+    const show = await getEditorSeriesById(seriesId);
 
     revalidatePath(`/editor/series/${seriesId}/seasons`);
-    redirect(
-      `/editor/series/${seriesId}/seasons/${season.id}/edit?success=${encodeURIComponent(
-        "Season created.",
-      )}`,
-    );
+    revalidatePath(show ? `/series/${show.slug}` : "/series");
+    redirect(show ? `/series/${show.slug}` : `/editor/series/${seriesId}/seasons`);
   } catch (error) {
     if (error instanceof EditorSeasonServiceError) {
       redirectWithError(newPath, error.message);
@@ -106,6 +118,7 @@ export async function updateEditorSeasonAction(
 
   try {
     const season = await updateEditorSeason(seriesId, seasonId, input);
+    const show = await getEditorSeriesById(seriesId);
 
     if (!season) {
       notFound();
@@ -113,7 +126,8 @@ export async function updateEditorSeasonAction(
 
     revalidatePath(`/editor/series/${seriesId}/seasons`);
     revalidatePath(editPath);
-    redirect(`${editPath}?success=${encodeURIComponent("Season updated.")}`);
+    revalidatePath(show ? `/series/${show.slug}` : "/series");
+    redirect(show ? `/series/${show.slug}` : editPath);
   } catch (error) {
     if (error instanceof EditorSeasonServiceError) {
       redirectWithError(editPath, error.message);
@@ -135,4 +149,24 @@ export async function deleteEditorSeasonAction(seriesIdValue: string, seasonIdVa
 
   revalidatePath(`/editor/series/${seriesId}/seasons`);
   redirect(`/editor/series/${seriesId}/seasons`);
+}
+
+export async function deleteSeasonFromSeriesDetailAction(
+  seriesIdValue: string,
+  seasonIdValue: string,
+  seriesSlug: string,
+) {
+  await requireEditorForPath(`/series/${seriesSlug}`);
+
+  const seriesId = parsePositiveId(seriesIdValue);
+  const seasonId = parsePositiveId(seasonIdValue);
+  const deleted = await deleteEditorSeason(seriesId, seasonId);
+
+  if (!deleted) {
+    notFound();
+  }
+
+  revalidatePath(`/editor/series/${seriesId}/seasons`);
+  revalidatePath(`/series/${seriesSlug}`);
+  redirect(`/series/${seriesSlug}`);
 }

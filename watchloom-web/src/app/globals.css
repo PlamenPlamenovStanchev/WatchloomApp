@@ -113,6 +113,50 @@ body::before {
     color: #fed7aa;
   }
 
+  .watchloom-back-link {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    border: 1px solid rgb(154 52 18 / 0.24);
+    border-radius: 0.5rem;
+    background: #ffedd5;
+    padding: 0.5rem 0.875rem;
+    color: #7c2d12;
+    font-size: 0.875rem;
+    font-weight: 700;
+    line-height: 1.25rem;
+    transition:
+      background-color 150ms ease,
+      border-color 150ms ease,
+      color 150ms ease,
+      box-shadow 150ms ease;
+  }
+
+  .watchloom-back-link:hover {
+    border-color: rgb(154 52 18 / 0.42);
+    background: #fed7aa;
+    color: #431407;
+    box-shadow: 0 10px 22px rgb(154 52 18 / 0.12);
+  }
+
+  .watchloom-back-link:focus-visible {
+    outline: 2px solid #ea580c;
+    outline-offset: 2px;
+  }
+
+  .dark .watchloom-back-link {
+    border-color: rgb(251 146 60 / 0.34);
+    background: rgb(124 45 18 / 0.5);
+    color: #fed7aa;
+  }
+
+  .dark .watchloom-back-link:hover {
+    border-color: rgb(253 186 116 / 0.56);
+    background: rgb(154 52 18 / 0.68);
+    color: #fff7ed;
+    box-shadow: 0 10px 22px rgb(0 0 0 / 0.24);
+  }
+
   .animate-rise {
     animation: watchloom-rise 520ms ease both;
   }

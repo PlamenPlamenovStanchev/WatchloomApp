@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { deleteEpisodeFromSeasonDetailAction } from "@/actions/editor-episode.actions";
+import { DeleteEditorEpisodeButton } from "@/components/editor/DeleteEditorEpisodeButton";
+import { getCurrentUser } from "@/lib/auth/current-user";
 import {
   getSeasonEpisodes,
   getSeriesBySlug,
@@ -36,6 +39,7 @@ export default async function SeasonDetailPage({ params }: SeasonDetailPageProps
   }
 
   const show = await getSeriesBySlug(slug);
+  const user = await getCurrentUser();
 
   if (!show) {
     notFound();
@@ -49,6 +53,7 @@ export default async function SeasonDetailPage({ params }: SeasonDetailPageProps
   }
 
   const episodes = await getSeasonEpisodes(season.id);
+  const canManageCatalog = user?.role === "editor" || user?.role === "admin";
 
   return (
     <main className="min-h-screen bg-zinc-50 px-4 py-8 text-zinc-950 dark:bg-black dark:text-zinc-50 sm:px-6 lg:px-8">
@@ -56,7 +61,7 @@ export default async function SeasonDetailPage({ params }: SeasonDetailPageProps
         <header className="space-y-4">
           <Link
             href={`/series/${show.slug}`}
-            className="inline-flex text-sm font-medium text-zinc-600 transition hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-50"
+            className="watchloom-back-link"
           >
             Back to {show.title}
           </Link>
@@ -79,14 +84,31 @@ export default async function SeasonDetailPage({ params }: SeasonDetailPageProps
         </header>
 
         <section aria-labelledby="season-episodes">
-          <h2 id="season-episodes" className="text-xl font-semibold">
-            Episodes
-          </h2>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <h2 id="season-episodes" className="text-xl font-semibold">
+              Episodes
+            </h2>
+            {canManageCatalog ? (
+              <Link
+                href={`/editor/series/${show.id}/seasons/${season.id}/episodes/new`}
+                className="inline-flex rounded-md bg-zinc-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-950 focus:ring-offset-2 dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-zinc-200"
+              >
+                Add Episode
+              </Link>
+            ) : null}
+          </div>
           {episodes.length > 0 ? (
             <ol className="mt-4 divide-y divide-zinc-200 overflow-hidden rounded-lg border border-zinc-200 bg-white dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-950">
               {episodes.map((episode) => {
                 const metadata = episode as typeof episode & OptionalEpisodeMetadata;
                 const duration = formatDuration(metadata.duration ?? metadata.durationMinutes);
+                const deleteEpisodeAction = deleteEpisodeFromSeasonDetailAction.bind(
+                  null,
+                  String(show.id),
+                  String(season.id),
+                  String(episode.id),
+                  show.slug,
+                );
 
                 return (
                   <li key={episode.id} className="p-5">
@@ -110,13 +132,24 @@ export default async function SeasonDetailPage({ params }: SeasonDetailPageProps
                         No episode description available.
                       </p>
                     )}
+                    {canManageCatalog ? (
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        <Link
+                          href={`/editor/series/${show.id}/seasons/${season.id}/episodes/${episode.id}/edit`}
+                          className="rounded-md border border-zinc-200 px-3 py-1.5 text-sm font-medium transition hover:bg-zinc-100 focus:outline-none focus:ring-2 focus:ring-zinc-950 focus:ring-offset-2 dark:border-zinc-800 dark:hover:bg-zinc-900 dark:focus:ring-zinc-100"
+                        >
+                          Edit
+                        </Link>
+                        <DeleteEditorEpisodeButton action={deleteEpisodeAction} />
+                      </div>
+                    ) : null}
                   </li>
                 );
               })}
             </ol>
           ) : (
             <p className="mt-4 rounded-lg border border-dashed border-zinc-300 bg-white px-5 py-8 text-sm text-zinc-600 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400">
-              No episodes found.
+              No episodes yet.
             </p>
           )}
         </section>

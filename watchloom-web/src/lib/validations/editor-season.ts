@@ -5,12 +5,6 @@ const optionalText = z
   .trim()
   .transform((value) => value || null);
 
-const optionalUrl = z
-  .string()
-  .trim()
-  .refine((value) => !value || URL.canParse(value), "Enter a valid URL.")
-  .transform((value) => value || null);
-
 const optionalPositiveInteger = z
   .string()
   .trim()
@@ -29,7 +23,9 @@ export const editorSeasonSchema = z.object({
     }),
   title: optionalText,
   releaseYear: optionalPositiveInteger,
-  posterUrl: optionalUrl,
 });
+
+export const seasonCreateSchema = editorSeasonSchema;
+export const seasonUpdateSchema = editorSeasonSchema;
 
 export type EditorSeasonInput = z.infer<typeof editorSeasonSchema>;

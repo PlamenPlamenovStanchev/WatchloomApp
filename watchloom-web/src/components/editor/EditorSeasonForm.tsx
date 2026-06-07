@@ -7,7 +7,6 @@ type EditorSeasonFormProps = {
     seasonNumber?: number;
     title?: string | null;
     releaseYear?: number | null;
-    posterUrl?: string | null;
   };
 };
 
@@ -64,11 +63,6 @@ export function EditorSeasonForm({
       <label className="mt-4 block text-sm font-medium">
         Title
         <input name="title" defaultValue={defaultValues?.title ?? ""} className={inputClass} />
-      </label>
-
-      <label className="mt-4 block text-sm font-medium">
-        Poster URL
-        <input name="posterUrl" defaultValue={defaultValues?.posterUrl ?? ""} className={inputClass} />
       </label>
 
       <div className="mt-6 flex justify-end">

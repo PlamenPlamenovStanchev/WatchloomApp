@@ -6,9 +6,11 @@ import {
   removeFavouriteForMediaAction,
 } from "@/actions/favourite.actions";
 import { deleteSeriesFromDetailAction } from "@/actions/editor-series.actions";
+import { deleteSeasonFromSeriesDetailAction } from "@/actions/editor-season.actions";
 import { createReviewAction, updateReviewAction } from "@/actions/review.actions";
 import { addSeriesToWatchlist } from "@/app/watchlist-actions";
 import { DeleteEditorSeriesButton } from "@/components/editor/DeleteEditorSeriesButton";
+import { DeleteEditorSeasonButton } from "@/components/editor/DeleteEditorSeasonButton";
 import { ReviewForm } from "@/components/reviews/ReviewForm";
 import { ReviewList } from "@/components/reviews/ReviewList";
 import { AddToWatchlistForm } from "@/components/watchlists/AddToWatchlistForm";
@@ -110,7 +112,7 @@ export default async function SeriesDetailPage({ params, searchParams }: SeriesD
         <aside>
           <Link
             href="/series"
-            className="mb-4 inline-flex text-sm font-medium text-zinc-600 transition hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-50"
+            className="watchloom-back-link mb-4"
           >
             Back to series
           </Link>
@@ -219,32 +221,66 @@ export default async function SeriesDetailPage({ params, searchParams }: SeriesD
           <ReviewList reviews={publicReviews} />
 
           <section aria-labelledby="series-seasons">
-            <h2 id="series-seasons" className="text-xl font-semibold">
-              Seasons
-            </h2>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <h2 id="series-seasons" className="text-xl font-semibold">
+                Seasons
+              </h2>
+              {canManageCatalog ? (
+                <Link
+                  href={`/editor/series/${show.id}/seasons/new`}
+                  className="inline-flex rounded-md bg-zinc-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-950 focus:ring-offset-2 dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-zinc-200"
+                >
+                  Add Season
+                </Link>
+              ) : null}
+            </div>
             {seasons.length > 0 ? (
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                {seasons.map((season) => (
-                  <Link
-                    key={season.id}
-                    href={`/series/${show.slug}/seasons/${season.id}`}
-                    className="rounded-lg border border-zinc-200 bg-white p-4 transition hover:border-zinc-300 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:ring-offset-2 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-700 dark:focus:ring-zinc-100"
-                  >
-                    <h3 className="text-base font-semibold">Season {season.seasonNumber}</h3>
-                    {season.title ? (
-                      <p className="mt-1 text-sm text-zinc-700 dark:text-zinc-300">{season.title}</p>
-                    ) : null}
-                    {season.overview ? (
-                      <p className="mt-2 line-clamp-2 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
-                        {season.overview}
-                      </p>
-                    ) : null}
-                  </Link>
-                ))}
+                {seasons.map((season) => {
+                  const deleteSeasonAction = deleteSeasonFromSeriesDetailAction.bind(
+                    null,
+                    String(show.id),
+                    String(season.id),
+                    show.slug,
+                  );
+
+                  return (
+                    <div
+                      key={season.id}
+                      className="rounded-lg border border-zinc-200 bg-white p-4 transition hover:border-zinc-300 hover:shadow-sm dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-700"
+                    >
+                      <Link
+                        href={`/series/${show.slug}/seasons/${season.id}`}
+                        className="block focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:ring-offset-2 dark:focus:ring-zinc-100"
+                      >
+                        <h3 className="text-base font-semibold">Season {season.seasonNumber}</h3>
+                        {season.title ? (
+                          <p className="mt-1 text-sm text-zinc-700 dark:text-zinc-300">{season.title}</p>
+                        ) : null}
+                        {season.overview ? (
+                          <p className="mt-2 line-clamp-2 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
+                            {season.overview}
+                          </p>
+                        ) : null}
+                      </Link>
+                      {canManageCatalog ? (
+                        <div className="mt-4 flex flex-wrap gap-2">
+                          <Link
+                            href={`/editor/series/${show.id}/seasons/${season.id}/edit`}
+                            className="rounded-md border border-zinc-200 px-3 py-1.5 text-sm font-medium transition hover:bg-zinc-100 focus:outline-none focus:ring-2 focus:ring-zinc-950 focus:ring-offset-2 dark:border-zinc-800 dark:hover:bg-zinc-900 dark:focus:ring-zinc-100"
+                          >
+                            Edit
+                          </Link>
+                          <DeleteEditorSeasonButton action={deleteSeasonAction} />
+                        </div>
+                      ) : null}
+                    </div>
+                  );
+                })}
               </div>
             ) : (
               <p className="mt-4 rounded-lg border border-dashed border-zinc-300 bg-white px-5 py-8 text-sm text-zinc-600 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400">
-                No seasons found.
+                No seasons yet.
               </p>
             )}
           </section>

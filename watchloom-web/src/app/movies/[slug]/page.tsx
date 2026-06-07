@@ -116,7 +116,7 @@ export default async function MovieDetailPage({ params, searchParams }: MovieDet
         <aside>
           <Link
             href="/movies"
-            className="mb-4 inline-flex text-sm font-medium text-zinc-600 transition hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-50"
+            className="watchloom-back-link mb-4"
           >
             Back to movies
           </Link>

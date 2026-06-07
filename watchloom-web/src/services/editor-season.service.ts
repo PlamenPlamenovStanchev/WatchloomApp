@@ -65,7 +65,6 @@ const toSeasonValues = (input: EditorSeasonInput) => ({
   seasonNumber: input.seasonNumber,
   title: input.title,
   releaseYear: input.releaseYear,
-  posterUrl: input.posterUrl,
 });
 
 const getEpisodeCountsBySeasonId = async (seasonIds: number[]) => {
@@ -169,3 +168,7 @@ export const deleteEditorSeason = async (seriesId: number, seasonId: number) => 
 
   return Boolean(deleted);
 };
+
+export const createSeason = createEditorSeason;
+export const updateSeason = updateEditorSeason;
+export const deleteSeason = deleteEditorSeason;

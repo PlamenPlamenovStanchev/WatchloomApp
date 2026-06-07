@@ -10,6 +10,7 @@ import {
   createEditorEpisode,
   deleteEditorEpisode,
   EditorEpisodeServiceError,
+  getEditorEpisodes,
   updateEditorEpisode,
 } from "@/services/editor-episode.service";
 
@@ -18,6 +19,20 @@ const requireEditor = async () => {
 
   if (!user) {
     redirect("/login?next=/editor/series");
+  }
+
+  if (user.role !== "editor" && user.role !== "admin") {
+    redirect("/forbidden");
+  }
+
+  return user;
+};
+
+const requireEditorForPath = async (nextPath: string) => {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    redirect(`/login?next=${encodeURIComponent(nextPath)}`);
   }
 
   if (user.role !== "editor" && user.role !== "admin") {
@@ -76,14 +91,12 @@ export async function createEditorEpisodeAction(
   const input = parsed.data!;
 
   try {
-    const episode = await createEditorEpisode(seriesId, seasonId, input);
+    await createEditorEpisode(seriesId, seasonId, input);
+    const data = await getEditorEpisodes(seriesId, seasonId);
 
     revalidatePath(`/editor/series/${seriesId}/seasons/${seasonId}/episodes`);
-    redirect(
-      `/editor/series/${seriesId}/seasons/${seasonId}/episodes/${episode.id}/edit?success=${encodeURIComponent(
-        "Episode created.",
-      )}`,
-    );
+    revalidatePath(`/series/${data.series.slug}/seasons/${seasonId}`);
+    redirect(`/series/${data.series.slug}/seasons/${seasonId}`);
   } catch (error) {
     if (error instanceof EditorEpisodeServiceError) {
       redirectWithError(newPath, error.message);
@@ -114,6 +127,7 @@ export async function updateEditorEpisodeAction(
 
   try {
     const episode = await updateEditorEpisode(seriesId, seasonId, episodeId, input);
+    const data = await getEditorEpisodes(seriesId, seasonId);
 
     if (!episode) {
       notFound();
@@ -121,7 +135,8 @@ export async function updateEditorEpisodeAction(
 
     revalidatePath(`/editor/series/${seriesId}/seasons/${seasonId}/episodes`);
     revalidatePath(editPath);
-    redirect(`${editPath}?success=${encodeURIComponent("Episode updated.")}`);
+    revalidatePath(`/series/${data.series.slug}/seasons/${seasonId}`);
+    redirect(`/series/${data.series.slug}/seasons/${seasonId}`);
   } catch (error) {
     if (error instanceof EditorEpisodeServiceError) {
       redirectWithError(editPath, error.message);
@@ -148,4 +163,26 @@ export async function deleteEditorEpisodeAction(
 
   revalidatePath(`/editor/series/${seriesId}/seasons/${seasonId}/episodes`);
   redirect(`/editor/series/${seriesId}/seasons/${seasonId}/episodes`);
+}
+
+export async function deleteEpisodeFromSeasonDetailAction(
+  seriesIdValue: string,
+  seasonIdValue: string,
+  episodeIdValue: string,
+  seriesSlug: string,
+) {
+  await requireEditorForPath(`/series/${seriesSlug}/seasons/${seasonIdValue}`);
+
+  const seriesId = parsePositiveId(seriesIdValue);
+  const seasonId = parsePositiveId(seasonIdValue);
+  const episodeId = parsePositiveId(episodeIdValue);
+  const deleted = await deleteEditorEpisode(seriesId, seasonId, episodeId);
+
+  if (!deleted) {
+    notFound();
+  }
+
+  revalidatePath(`/editor/series/${seriesId}/seasons/${seasonId}/episodes`);
+  revalidatePath(`/series/${seriesSlug}/seasons/${seasonId}`);
+  redirect(`/series/${seriesSlug}/seasons/${seasonId}`);
 }
