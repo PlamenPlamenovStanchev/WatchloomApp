@@ -4,7 +4,9 @@ test.describe("public catalog", () => {
   test("home page renders", async ({ page }) => {
     await page.goto("/");
 
-    await expect(page.getByRole("heading", { name: /Find movies and series/i })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: /Discover what to watch next with Watchloom/i }),
+    ).toBeVisible();
     await expect(page.getByRole("link", { name: /Browse movies/i }).first()).toBeVisible();
   });
 
@@ -12,7 +14,7 @@ test.describe("public catalog", () => {
     await page.goto("/movies");
 
     await expect(page.getByRole("heading", { name: "Movies" })).toBeVisible();
-    await expect(page.getByRole("link", { name: /The Matrix/i })).toBeVisible();
+    await expect(page.getByRole("link", { name: "The Matrix", exact: true })).toBeVisible();
 
     await page.getByRole("searchbox", { name: /search movies/i }).fill("arrival");
     await page.getByRole("button", { name: /search/i }).click();
@@ -33,9 +35,11 @@ test.describe("public catalog", () => {
     await page.goto("/series");
 
     await expect(page.getByRole("heading", { name: "Series" })).toBeVisible();
-    await expect(page.getByRole("link", { name: /Breaking Bad/i })).toBeVisible();
+    const breakingBadLink = page.getByRole("link", { name: "Breaking Bad", exact: true });
 
-    await page.getByRole("link", { name: /Breaking Bad/i }).click();
+    await expect(breakingBadLink).toBeVisible();
+
+    await breakingBadLink.click();
     await expect(page.getByRole("heading", { name: "Breaking Bad" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Seasons" })).toBeVisible();
 

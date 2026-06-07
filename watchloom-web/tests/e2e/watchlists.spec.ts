@@ -19,12 +19,17 @@ test.describe("watchlists, favourites, and reviews", () => {
     await expect(page.getByRole("heading", { name: listName })).toBeVisible();
 
     await page.goto("/movies/arrival");
-    await page.getByLabel("Watchlist").selectOption({ label: listName });
-    await page.getByLabel("Status").selectOption("watching");
-    await page.getByLabel("Rating").selectOption("5");
-    await page.getByLabel("Planned time").fill("2030-01-02T20:30");
-    await page.getByLabel("Notes").fill("Watch with subtitles.");
-    await page.getByRole("button", { name: "Add to Watchlist" }).click();
+    const addToWatchlistForm = page.locator("form", {
+      has: page.getByRole("button", { name: "Add to Watchlist" }),
+    });
+    await addToWatchlistForm.getByRole("combobox", { name: "Watchlist" }).selectOption({
+      label: listName,
+    });
+    await addToWatchlistForm.getByLabel("Status").selectOption("watching");
+    await addToWatchlistForm.getByLabel("Rating").selectOption("5");
+    await addToWatchlistForm.getByLabel("Planned time").fill("2030-01-02T20:30");
+    await addToWatchlistForm.getByLabel("Notes").fill("Watch with subtitles.");
+    await addToWatchlistForm.getByRole("button", { name: "Add to Watchlist" }).click();
 
     await expect(page.getByText("Added to watchlist.")).toBeVisible();
 
@@ -58,10 +63,13 @@ test.describe("watchlists, favourites, and reviews", () => {
 
   test("logged-in user can write and update a review", async ({ page }) => {
     await page.goto("/movies/arrival");
-    await page.getByLabel("Rating").selectOption("5");
-    await page.getByLabel("Title").fill("Playwright review");
-    await page.getByLabel("Content").fill("This review came from a browser test.");
-    await page.getByRole("button", { name: "Create review" }).click();
+    const reviewForm = page.locator("form", {
+      has: page.getByRole("button", { name: "Create review" }),
+    });
+    await reviewForm.getByLabel("Rating").selectOption("5");
+    await reviewForm.getByLabel("Title").fill("Playwright review");
+    await reviewForm.getByLabel("Content").fill("This review came from a browser test.");
+    await reviewForm.getByRole("button", { name: "Create review" }).click();
 
     await expect(page.getByText("Review saved.")).toBeVisible();
     await expect(page.getByRole("heading", { name: "Playwright review" })).toBeVisible();
