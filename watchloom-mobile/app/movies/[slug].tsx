@@ -92,7 +92,7 @@ export default function MovieDetailsScreen() {
       <Screen contentContainerStyle={styles.centeredContent}>
         <ErrorState
           message="The movie you are looking for could not be found."
-          retryAction={<Button onPress={goBack} title="Back to Movies" />}
+          retryAction={<Button onPress={goBack} title="Back to Movies" variant="back" />}
           title="Movie not found"
         />
       </Screen>
@@ -107,7 +107,7 @@ export default function MovieDetailsScreen() {
           retryAction={
             <View style={styles.actions}>
               <Button onPress={() => void loadMovie()} title="Retry" />
-              <Button onPress={goBack} title="Back" variant="secondary" />
+              <Button onPress={goBack} title="Back" variant="back" />
             </View>
           }
           title="Could not load movie"
@@ -122,7 +122,7 @@ export default function MovieDetailsScreen() {
         refreshControl: <RefreshControl onRefresh={() => void loadMovie(true)} refreshing={refreshing} />,
       }}
     >
-      <Button onPress={goBack} title="Back" variant="ghost" />
+      <Button onPress={goBack} title="Back" variant="back" />
 
       <PosterHeader
         eyebrow="MOVIE"

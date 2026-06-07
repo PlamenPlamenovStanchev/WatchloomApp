@@ -19,12 +19,13 @@ export function RatingInput({ disabled = false, onChange, value }: RatingInputPr
         {ratings.map((rating) => (
           <Pressable
             accessibilityRole="button"
+            accessibilityLabel={`${rating} star${rating === 1 ? '' : 's'}`}
             disabled={disabled}
             key={rating}
             onPress={() => onChange(rating)}
-            style={[styles.option, value === rating && styles.selected, disabled && styles.disabled]}
+            style={[styles.option, disabled && styles.disabled]}
           >
-            <Text style={[styles.optionText, value === rating && styles.selectedText]}>{rating}</Text>
+            <Text style={[styles.star, rating <= value && styles.selectedStar]}>★</Text>
           </Pressable>
         ))}
       </View>
@@ -49,24 +50,17 @@ const styles = StyleSheet.create({
   },
   option: {
     alignItems: 'center',
-    borderColor: theme.colors.border,
-    borderRadius: theme.radius.lg,
-    borderWidth: 1,
     justifyContent: 'center',
     minHeight: 40,
     minWidth: 40,
   },
-  selected: {
-    backgroundColor: theme.colors.accent,
-    borderColor: theme.colors.accent,
-  },
-  optionText: {
+  star: {
     color: theme.colors.textMuted,
-    fontSize: theme.fontSizes.sm,
+    fontSize: 32,
+    lineHeight: 36,
   },
-  selectedText: {
-    color: theme.colors.accentText,
-    fontWeight: '600',
+  selectedStar: {
+    color: theme.colors.accent,
   },
   disabled: {
     opacity: 0.55,

@@ -17,7 +17,7 @@ export default function ProfileScreen() {
     try {
       await logout();
     } finally {
-      router.replace(routes.auth.login as Href);
+      router.replace(routes.tabs.home as Href);
     }
   }
 

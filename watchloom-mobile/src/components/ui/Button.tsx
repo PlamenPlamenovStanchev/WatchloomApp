@@ -2,7 +2,7 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, type PressableProps } f
 
 import { theme } from '@/constants/theme';
 
-type ButtonVariant = 'primary' | 'secondary' | 'ghost';
+type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'back';
 
 type ButtonProps = Omit<PressableProps, 'children'> & {
   loading?: boolean;
@@ -19,7 +19,8 @@ export function Button({
   ...props
 }: ButtonProps) {
   const isDisabled = disabled || loading;
-  const indicatorColor = variant === 'primary' ? theme.colors.accentText : theme.colors.text;
+  const indicatorColor =
+    variant === 'primary' || variant === 'back' ? theme.colors.accentText : theme.colors.text;
 
   return (
     <Pressable
@@ -65,6 +66,15 @@ const styles = StyleSheet.create({
     minHeight: 40,
     paddingVertical: theme.spacing.sm,
   },
+  back: {
+    alignSelf: 'flex-start',
+    backgroundColor: theme.colors.accent,
+    borderColor: theme.colors.accent,
+    borderWidth: 1,
+    minHeight: 42,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+  },
   pressed: {
     opacity: 0.8,
   },
@@ -83,5 +93,8 @@ const styles = StyleSheet.create({
   },
   ghostTitle: {
     color: theme.colors.accent,
+  },
+  backTitle: {
+    color: theme.colors.accentText,
   },
 });

@@ -8,6 +8,7 @@ import {
   getPlannedNotificationRecord,
   savePlannedNotificationRecord,
 } from '@/lib/planned-notification-storage';
+import { parsePlannedWatchDate } from '@/lib/planned-date';
 
 type PlannedNotificationItem = {
   id: number | string;
@@ -89,7 +90,7 @@ export async function cancelPlannedItemReminder(watchlistItemId: number | string
 }
 
 function getFuturePlannedWatchAt(value?: string | null) {
-  const plannedWatchAt = value ? new Date(value) : null;
+  const plannedWatchAt = parsePlannedWatchDate(value);
 
   if (!plannedWatchAt || Number.isNaN(plannedWatchAt.getTime())) {
     throw new Error('Set a valid planned watch date before creating a reminder.');

@@ -114,8 +114,8 @@ export async function schedulePlannedWatchNotification(
         title: input.title,
         body:
           input.mediaType === "movie"
-            ? "Your movie is ready to watch 🎬"
-            : "Your series is waiting for you 🍿",
+            ? "Your movie is ready to watch."
+            : "Your series is waiting for you.",
         data: {
           type: WATCHLOOM_NOTIFICATION_TYPE,
           mediaType: input.mediaType,

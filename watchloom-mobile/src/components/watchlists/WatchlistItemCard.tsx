@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/Input';
 import { routes } from '@/constants/routes';
 import { theme } from '@/constants/theme';
 import { confirmAction } from '@/lib/confirm';
+import { normalizePlannedWatchInput } from '@/lib/planned-date';
 import type { UpdateWatchlistItemInput, WatchlistItemWithMediaDto, WatchStatus } from '@/types/api';
 
 type WatchlistItemCardProps = {
@@ -125,7 +126,7 @@ export function WatchlistItemCard({ item, onRemove, onUpdate }: WatchlistItemCar
           <Button
             disabled={removing}
             loading={saving}
-            onPress={() => void save({ plannedWatchAt: plannedWatchAt.trim() || null })}
+            onPress={() => void save({ plannedWatchAt: normalizePlannedWatchInput(plannedWatchAt) })}
             title="Save Planned Date"
             variant="secondary"
           />

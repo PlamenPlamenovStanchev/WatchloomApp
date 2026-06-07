@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 
 import { CatalogEmptyState } from '@/components/catalog/CatalogEmptyState';
+import { Button } from '@/components/ui/Button';
 import { theme } from '@/constants/theme';
 
 type CatalogListProps<ItemT> = Omit<
@@ -17,15 +18,19 @@ type CatalogListProps<ItemT> = Omit<
 > & {
   emptyState?: ComponentType | ReactElement | null;
   items: readonly ItemT[];
+  hasMore?: boolean;
   loadingMore?: boolean;
+  onLoadMore?: () => void;
   renderItem: ListRenderItem<ItemT>;
 };
 
 export function CatalogList<ItemT>({
   contentContainerStyle,
   emptyState,
+  hasMore = false,
   items,
   loadingMore = false,
+  onLoadMore,
   renderItem,
   ...props
 }: CatalogListProps<ItemT>): ReactElement {
@@ -35,7 +40,11 @@ export function CatalogList<ItemT>({
       data={items}
       ItemSeparatorComponent={ItemSeparator}
       ListEmptyComponent={emptyState ?? <CatalogEmptyState />}
-      ListFooterComponent={loadingMore ? <LoadingFooter /> : null}
+      ListFooterComponent={
+        items.length > 0 ? (
+          <ListFooter hasMore={hasMore} loadingMore={loadingMore} onLoadMore={onLoadMore} />
+        ) : null
+      }
       renderItem={renderItem}
       {...props}
     />
@@ -44,6 +53,30 @@ export function CatalogList<ItemT>({
 
 function ItemSeparator() {
   return <View style={styles.separator} />;
+}
+
+function ListFooter({
+  hasMore,
+  loadingMore,
+  onLoadMore,
+}: {
+  hasMore: boolean;
+  loadingMore: boolean;
+  onLoadMore?: () => void;
+}) {
+  if (loadingMore) {
+    return <LoadingFooter />;
+  }
+
+  if (!hasMore || !onLoadMore) {
+    return <View style={styles.footerSpacer} />;
+  }
+
+  return (
+    <View style={styles.footer}>
+      <Button onPress={onLoadMore} title="Load more" variant="secondary" />
+    </View>
+  );
 }
 
 function LoadingFooter() {
@@ -70,5 +103,8 @@ const styles = StyleSheet.create({
   },
   footer: {
     paddingVertical: theme.spacing.lg,
+  },
+  footerSpacer: {
+    height: theme.spacing.lg,
   },
 });

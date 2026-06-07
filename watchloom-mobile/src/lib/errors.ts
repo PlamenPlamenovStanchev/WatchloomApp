@@ -2,7 +2,7 @@ import { ApiClientError } from '@/lib/api-client';
 
 export function getUserFriendlyError(error: unknown, fallback: string) {
   if (!(error instanceof ApiClientError)) {
-    return fallback;
+    return error instanceof Error ? error.message : fallback;
   }
 
   if (error.status === 0) {

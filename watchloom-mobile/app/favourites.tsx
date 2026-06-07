@@ -75,6 +75,14 @@ export default function FavouritesScreen() {
     }
   }
 
+  function goBack() {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace(routes.tabs.profile as Href);
+    }
+  }
+
   if (authLoading) {
     return (
       <Screen contentContainerStyle={styles.centeredContent}>
@@ -106,7 +114,7 @@ export default function FavouritesScreen() {
 
   return (
     <Screen contentContainerStyle={styles.screen} scroll={false}>
-      <Button onPress={() => router.back()} title="Back" variant="ghost" />
+      <Button onPress={goBack} title="Back" variant="back" />
       <View style={styles.header}>
         <Text style={styles.title}>Your favourites</Text>
         <Text style={styles.subtitle}>Movies and series you want to keep close.</Text>

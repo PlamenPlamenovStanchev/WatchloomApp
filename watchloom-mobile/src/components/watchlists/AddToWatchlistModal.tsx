@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { router, type Href } from 'expo-router';
 import {
   Modal,
   Pressable,
@@ -15,7 +16,9 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { Input } from '@/components/ui/Input';
 import { LoadingState } from '@/components/ui/LoadingState';
+import { routes } from '@/constants/routes';
 import { theme } from '@/constants/theme';
+import { normalizePlannedWatchInput } from '@/lib/planned-date';
 import { addWatchlistItem, getWatchlists } from '@/services/watchlist-api';
 import type { WatchlistSummaryDto, WatchStatus } from '@/types/api';
 
@@ -79,11 +82,12 @@ export function AddToWatchlistModal({
       await addWatchlistItem(token, selectedWatchlistId, {
         mediaType,
         movieId: mediaType === 'movie' ? mediaId : undefined,
-        plannedWatchAt: status === 'to_watch' ? plannedWatchAt.trim() || null : null,
+        plannedWatchAt: status === 'to_watch' ? normalizePlannedWatchInput(plannedWatchAt) : null,
         seriesId: mediaType === 'series' ? mediaId : undefined,
         status,
       });
-      setSuccess('Added to watchlist.');
+      close();
+      router.push(routes.watchlistDetails(String(selectedWatchlistId)) as Href);
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : 'Unable to add this title.');
     } finally {

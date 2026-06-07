@@ -36,6 +36,14 @@ export default function NewWatchlistScreen() {
     }
   }
 
+  function goBack() {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace(routes.tabs.watchlists as Href);
+    }
+  }
+
   if (!isInitialized || authLoading || !isAuthenticated || !accessToken) {
     return (
       <Screen contentContainerStyle={styles.centeredContent}>
@@ -46,7 +54,7 @@ export default function NewWatchlistScreen() {
 
   return (
     <Screen>
-      <Button onPress={() => router.back()} title="Back" variant="ghost" />
+      <Button onPress={goBack} title="Back" variant="back" />
       <View style={styles.header}>
         <Text style={styles.title}>Create watchlist</Text>
         <Text style={styles.subtitle}>Start a new list for movies and series.</Text>

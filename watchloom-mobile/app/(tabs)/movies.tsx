@@ -122,11 +122,11 @@ export default function MoviesScreen() {
                 title="No movies found"
               />
             }
+            hasMore={page < totalPages}
             items={movies}
             keyExtractor={(movie) => String(movie.id)}
             loadingMore={loadingMore}
-            onEndReached={loadMore}
-            onEndReachedThreshold={0.4}
+            onLoadMore={loadMore}
             onRefresh={refresh}
             refreshing={refreshing}
             renderItem={({ item }) => <MovieCard movie={item} />}

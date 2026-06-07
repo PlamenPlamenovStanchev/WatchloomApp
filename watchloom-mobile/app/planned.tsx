@@ -56,6 +56,14 @@ export default function PlannedWatchingScreen() {
     void loadItems();
   }, [loadItems]);
 
+  function goBack() {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace(routes.tabs.watchlists as Href);
+    }
+  }
+
   if (authLoading) {
     return (
       <Screen contentContainerStyle={styles.centeredContent}>
@@ -87,7 +95,7 @@ export default function PlannedWatchingScreen() {
 
   return (
     <Screen contentContainerStyle={styles.screen} scroll={false}>
-      <Button onPress={() => router.back()} title="Back" variant="ghost" />
+      <Button onPress={goBack} title="Back" variant="back" />
       <View style={styles.header}>
         <Text style={styles.title}>Planned watching</Text>
         <Text style={styles.subtitle}>Your upcoming movies and series, ordered by date.</Text>

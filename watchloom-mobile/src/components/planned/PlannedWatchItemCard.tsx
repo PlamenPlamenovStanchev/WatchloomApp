@@ -13,6 +13,7 @@ import {
   cancelPlannedItemReminder,
   schedulePlannedItemReminder,
 } from '@/lib/planned-notifications';
+import { notificationsAreAvailable } from '@/lib/notifications';
 import type { PlannedWatchItemDto } from '@/types/api';
 
 type PlannedWatchItemCardProps = {
@@ -22,6 +23,7 @@ type PlannedWatchItemCardProps = {
 export function PlannedWatchItemCard({ item }: PlannedWatchItemCardProps) {
   const [scheduling, setScheduling] = useState(false);
   const [notificationId, setNotificationId] = useState<string | null>(null);
+  const canUseNotifications = notificationsAreAvailable();
   const detailsRoute =
     item.media && item.mediaType === 'movie'
       ? routes.movieDetails(item.media.slug)
@@ -111,11 +113,18 @@ export function PlannedWatchItemCard({ item }: PlannedWatchItemCardProps) {
         </View>
       </Pressable>
       <Button
+        disabled={!canUseNotifications}
         loading={scheduling}
         onPress={() => {
           void (notificationId ? cancelReminder() : scheduleReminder());
         }}
-        title={notificationId ? 'Cancel reminder' : 'Schedule reminder'}
+        title={
+          canUseNotifications
+            ? notificationId
+              ? 'Cancel reminder'
+              : 'Schedule reminder'
+            : 'Reminders unavailable on web'
+        }
         variant="secondary"
       />
     </Card>

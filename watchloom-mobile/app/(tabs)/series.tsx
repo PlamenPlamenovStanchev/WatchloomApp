@@ -122,11 +122,11 @@ export default function SeriesScreen() {
                 title="No series found"
               />
             }
+            hasMore={page < totalPages}
             items={series}
             keyExtractor={(item) => String(item.id)}
             loadingMore={loadingMore}
-            onEndReached={loadMore}
-            onEndReachedThreshold={0.4}
+            onLoadMore={loadMore}
             onRefresh={refresh}
             refreshing={refreshing}
             renderItem={({ item }) => <SeriesCard series={item} />}

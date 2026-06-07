@@ -102,7 +102,7 @@ export default function SeriesDetailsScreen() {
       <Screen contentContainerStyle={styles.centeredContent}>
         <ErrorState
           message="The series you are looking for could not be found."
-          retryAction={<Button onPress={goBack} title="Back to Series" />}
+          retryAction={<Button onPress={goBack} title="Back to Series" variant="back" />}
           title="Series not found"
         />
       </Screen>
@@ -117,7 +117,7 @@ export default function SeriesDetailsScreen() {
           retryAction={
             <View style={styles.actions}>
               <Button onPress={() => void loadSeries()} title="Retry" />
-              <Button onPress={goBack} title="Back" variant="secondary" />
+              <Button onPress={goBack} title="Back" variant="back" />
             </View>
           }
           title="Could not load series"
@@ -132,7 +132,7 @@ export default function SeriesDetailsScreen() {
         refreshControl: <RefreshControl onRefresh={() => void loadSeries(true)} refreshing={refreshing} />,
       }}
     >
-      <Button onPress={goBack} title="Back" variant="ghost" />
+      <Button onPress={goBack} title="Back" variant="back" />
 
       <PosterHeader
         eyebrow="SERIES"

@@ -169,7 +169,7 @@ export default function WatchlistDetailsScreen() {
         refreshControl: <RefreshControl onRefresh={() => void loadWatchlist(true)} refreshing={refreshing} />,
       }}
     >
-      <Button onPress={() => router.replace(routes.tabs.watchlists as Href)} title="Back" variant="ghost" />
+      <Button onPress={() => router.replace(routes.tabs.watchlists as Href)} title="Back" variant="back" />
       <View style={styles.header}>
         <Text style={styles.title}>{watchlist.name}</Text>
         <Text style={styles.subtitle}>{watchlist.description || 'No description provided.'}</Text>
@@ -179,6 +179,17 @@ export default function WatchlistDetailsScreen() {
           {watchlist.items.length === 1 ? '1 item' : `${watchlist.items.length} items`}
         </Text>
       </Card>
+      <View style={styles.catalogActions}>
+        <Button
+          onPress={() => router.push(routes.tabs.movies as Href)}
+          title="Add movie to the watchlist"
+        />
+        <Button
+          onPress={() => router.push(routes.tabs.series as Href)}
+          title="Add series to the watchlist"
+          variant="secondary"
+        />
+      </View>
       <View style={styles.items}>
         <Text style={styles.sectionTitle}>Items</Text>
         {watchlist.items.length > 0 ? (
@@ -239,6 +250,9 @@ const styles = StyleSheet.create({
   },
   actions: {
     gap: theme.spacing.md,
+  },
+  catalogActions: {
+    gap: theme.spacing.sm,
   },
   items: {
     gap: theme.spacing.md,

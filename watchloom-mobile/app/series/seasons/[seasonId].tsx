@@ -83,7 +83,7 @@ export default function SeasonEpisodesScreen() {
       <Screen contentContainerStyle={styles.centeredContent}>
         <ErrorState
           message="The season you are looking for could not be found."
-          retryAction={<Button onPress={goBack} title="Back to Series" />}
+          retryAction={<Button onPress={goBack} title="Back to Series" variant="back" />}
           title="Season not found"
         />
       </Screen>
@@ -98,7 +98,7 @@ export default function SeasonEpisodesScreen() {
           retryAction={
             <View style={styles.actions}>
               <Button onPress={() => void loadEpisodes()} title="Retry" />
-              <Button onPress={goBack} title="Back" variant="secondary" />
+              <Button onPress={goBack} title="Back" variant="back" />
             </View>
           }
           title="Could not load episodes"
@@ -113,7 +113,7 @@ export default function SeasonEpisodesScreen() {
         refreshControl: <RefreshControl onRefresh={() => void loadEpisodes(true)} refreshing={refreshing} />,
       }}
     >
-      <Button onPress={goBack} title="Back" variant="ghost" />
+      <Button onPress={goBack} title="Back" variant="back" />
 
       <View style={styles.header}>
         <Text style={styles.eyebrow}>SERIES</Text>

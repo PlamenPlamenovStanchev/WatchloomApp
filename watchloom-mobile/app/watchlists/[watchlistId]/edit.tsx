@@ -65,6 +65,16 @@ export default function EditWatchlistScreen() {
     }
   }
 
+  function goBack() {
+    if (router.canGoBack()) {
+      router.back();
+    } else if (watchlistId) {
+      router.replace(routes.watchlistDetails(watchlistId) as Href);
+    } else {
+      router.replace(routes.tabs.watchlists as Href);
+    }
+  }
+
   if (!isInitialized || authLoading || !isAuthenticated || !accessToken || loading) {
     return (
       <Screen contentContainerStyle={styles.centeredContent}>
@@ -91,7 +101,7 @@ export default function EditWatchlistScreen() {
 
   return (
     <Screen>
-      <Button onPress={() => router.back()} title="Back" variant="ghost" />
+      <Button onPress={goBack} title="Back" variant="back" />
       <View style={styles.header}>
         <Text style={styles.title}>Edit watchlist</Text>
         <Text style={styles.subtitle}>Update the name or description.</Text>
