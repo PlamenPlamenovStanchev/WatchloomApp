@@ -31,10 +31,8 @@ test.describe("watchlists, favourites, and reviews", () => {
     await addToWatchlistForm.getByLabel("Notes").fill("Watch with subtitles.");
     await addToWatchlistForm.getByRole("button", { name: "Add to Watchlist" }).click();
 
-    await expect(page.getByText("Added to watchlist.")).toBeVisible();
-
-    await page.goto("/dashboard/watchlists");
-    await page.getByRole("link", { name: new RegExp(listName) }).click();
+    await expect(page).toHaveURL(/\/dashboard\/watchlists\/\d+/);
+    await expect(page.getByRole("heading", { name: listName })).toBeVisible();
     await expect(page.getByRole("link", { name: "Arrival" })).toBeVisible();
 
     await page.getByLabel("Status").selectOption("watched");
@@ -76,10 +74,13 @@ test.describe("watchlists, favourites, and reviews", () => {
 
     await page.goto("/dashboard/reviews");
     await expect(page.getByRole("link", { name: "Arrival" })).toBeVisible();
-    await page.getByLabel("Title").fill("Updated Playwright review");
-    await page.getByRole("button", { name: "Update review" }).click();
+    const arrivalReview = page.getByRole("article").filter({
+      has: page.getByRole("link", { name: "Arrival" }),
+    });
+    await arrivalReview.getByLabel("Title").fill("Updated Playwright review");
+    await arrivalReview.getByRole("button", { name: "Update review" }).click();
 
-    await expect(page.getByRole("textbox", { name: "Title" }).last()).toHaveValue(
+    await expect(arrivalReview.getByRole("textbox", { name: "Title" })).toHaveValue(
       "Updated Playwright review",
     );
   });

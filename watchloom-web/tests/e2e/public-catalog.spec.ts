@@ -16,7 +16,7 @@ test.describe("public catalog", () => {
     await expect(page.getByRole("heading", { name: "Movies" })).toBeVisible();
     await expect(page.getByRole("link", { name: "The Matrix", exact: true })).toBeVisible();
 
-    await page.getByRole("searchbox", { name: /search movies/i }).fill("arrival");
+    await page.getByRole("searchbox", { name: /search by title/i }).fill("arrival");
     await page.getByRole("button", { name: /search/i }).click();
 
     await expect(page).toHaveURL(/q=arrival/);
