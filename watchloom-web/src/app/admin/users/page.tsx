@@ -8,6 +8,7 @@ type AdminUsersPageProps = {
     q?: string;
     role?: string;
     active?: string;
+    success?: string;
   }>;
 };
 
@@ -56,9 +57,15 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
       <div>
         <h2 className="text-2xl font-semibold tracking-tight">Users</h2>
         <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-          Review user accounts. Role changes and deactivation are not implemented yet.
+          Review user accounts, roles, and active status.
         </p>
       </div>
+
+      {params.success ? (
+        <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-200">
+          {params.success}
+        </p>
+      ) : null}
 
       <form action="/admin/users" className="watchloom-surface grid gap-3 rounded-3xl p-4 sm:grid-cols-[1fr_170px_170px_auto]">
         <input

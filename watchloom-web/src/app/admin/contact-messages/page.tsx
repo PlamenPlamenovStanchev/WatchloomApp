@@ -2,6 +2,12 @@ import Link from "next/link";
 
 import { getAdminContactMessages } from "@/services/admin-message.service";
 
+type AdminContactMessagesPageProps = {
+  searchParams: Promise<{
+    success?: string;
+  }>;
+};
+
 const formatDate = (value: Date) => {
   return new Intl.DateTimeFormat("en", {
     dateStyle: "medium",
@@ -9,8 +15,10 @@ const formatDate = (value: Date) => {
   }).format(value);
 };
 
-export default async function AdminContactMessagesPage() {
-  const messages = await getAdminContactMessages();
+export default async function AdminContactMessagesPage({
+  searchParams,
+}: AdminContactMessagesPageProps) {
+  const [messages, params] = await Promise.all([getAdminContactMessages(), searchParams]);
 
   return (
     <div className="space-y-5">
@@ -20,6 +28,12 @@ export default async function AdminContactMessagesPage() {
           Review contact submissions and editor access requests.
         </p>
       </div>
+
+      {params.success ? (
+        <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-200">
+          {params.success}
+        </p>
+      ) : null}
 
       <section className="watchloom-surface overflow-hidden rounded-3xl">
         {messages.length === 0 ? (

@@ -39,6 +39,10 @@ export const authErrorResponse = (error: unknown) => {
       return errorResponse("Invalid email or password", 401);
     }
 
+    if (error.code === "ACCOUNT_INACTIVE") {
+      return errorResponse(error.message, 403);
+    }
+
     return errorResponse(error.message, 400);
   }
 

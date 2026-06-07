@@ -41,7 +41,11 @@ export type LoginResult = AuthResult;
 export class AuthServiceError extends Error {
   constructor(
     message: string,
-    public readonly code: "EMAIL_IN_USE" | "INVALID_CREDENTIALS" | "INVALID_INPUT",
+    public readonly code:
+      | "EMAIL_IN_USE"
+      | "INVALID_CREDENTIALS"
+      | "INVALID_INPUT"
+      | "ACCOUNT_INACTIVE",
   ) {
     super(message);
     this.name = "AuthServiceError";
@@ -168,7 +172,10 @@ export const loginUser = async (input: LoginInput): Promise<AuthResult> => {
   const safeUser = toSafeUser(user);
 
   if (!safeUser.isActive) {
-    throw invalidCredentialsError;
+    throw new AuthServiceError(
+      "This account is currently deactivated. Please contact an administrator if you think this is a mistake.",
+      "ACCOUNT_INACTIVE",
+    );
   }
 
   const accessToken = await signAccessToken({

@@ -41,8 +41,8 @@ const redirectWithError = (userId: number, message: string): never => {
   redirect(`/admin/users/${userId}?error=${encodeURIComponent(message)}`);
 };
 
-const redirectWithSuccess = (userId: number, message: string): never => {
-  redirect(`/admin/users/${userId}?success=${encodeURIComponent(message)}`);
+const redirectToUsersWithSuccess = (message: string): never => {
+  redirect(`/admin/users?success=${encodeURIComponent(message)}`);
 };
 
 export async function updateAdminUserRoleAction(userIdValue: string, formData: FormData) {
@@ -72,7 +72,7 @@ export async function updateAdminUserRoleAction(userIdValue: string, formData: F
     throw error;
   }
 
-  redirectWithSuccess(userId, "Role updated.");
+  redirectToUsersWithSuccess("Role updated.");
 }
 
 export async function updateAdminUserActiveAction(userIdValue: string, formData: FormData) {
@@ -96,7 +96,7 @@ export async function updateAdminUserActiveAction(userIdValue: string, formData:
     throw error;
   }
 
-  redirectWithSuccess(userId, isActive ? "User activated." : "User deactivated.");
+  redirectToUsersWithSuccess(isActive ? "User activated." : "User deactivated.");
 }
 
 export async function deleteAdminUserAction(userIdValue: string) {

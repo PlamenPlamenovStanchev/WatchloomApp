@@ -5,6 +5,14 @@ import { contactMessages, users } from "@/db/schema";
 
 type ContactMessageStatus = "new" | "read" | "resolved";
 
+export type CreateContactMessageInput = {
+  userId?: number | null;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+};
+
 export type AdminContactMessageListItem = typeof contactMessages.$inferSelect & {
   linkedUser: {
     id: number;
@@ -77,6 +85,21 @@ export const getAdminContactMessageById = async (messageId: number) => {
     .limit(1);
 
   return row ? toAdminMessage(row) : null;
+};
+
+export const createContactMessage = async (input: CreateContactMessageInput) => {
+  const [message] = await db
+    .insert(contactMessages)
+    .values({
+      userId: input.userId ?? null,
+      name: input.name.trim(),
+      email: input.email.trim().toLowerCase(),
+      subject: input.subject.trim(),
+      message: input.message.trim(),
+    })
+    .returning();
+
+  return message;
 };
 
 export const updateAdminContactMessageStatus = async (

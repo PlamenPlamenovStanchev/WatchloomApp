@@ -41,8 +41,8 @@ const redirectWithError = (messageId: number, message: string): never => {
   redirect(`/admin/contact-messages/${messageId}?error=${encodeURIComponent(message)}`);
 };
 
-const redirectWithSuccess = (messageId: number, message: string): never => {
-  redirect(`/admin/contact-messages/${messageId}?success=${encodeURIComponent(message)}`);
+const redirectToMessagesWithSuccess = (message: string): never => {
+  redirect(`/admin/contact-messages?success=${encodeURIComponent(message)}`);
 };
 
 export async function updateAdminMessageStatusAction(
@@ -64,7 +64,7 @@ export async function updateAdminMessageStatusAction(
     throw error;
   }
 
-  redirectWithSuccess(messageId, "Message status updated.");
+  redirectToMessagesWithSuccess("Message status updated.");
 }
 
 export async function deleteAdminMessageAction(messageIdValue: string) {
@@ -102,5 +102,5 @@ export async function promoteMessageUserToEditorAction(messageIdValue: string) {
     throw error;
   }
 
-  redirectWithSuccess(messageId, "Linked user promoted to editor.");
+  redirectToMessagesWithSuccess("Linked user promoted to editor.");
 }
