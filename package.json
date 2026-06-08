@@ -16,9 +16,6 @@
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "npm run test --workspaces --if-present"
   },
-  "devDependencies": {
-    "expo-router": "56.2.5"
-  },
   "engines": {
     "node": ">=20.19.4"
   },

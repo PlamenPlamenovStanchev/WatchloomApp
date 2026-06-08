@@ -12,6 +12,7 @@
     },
     "android": {
       "package": "com.watchloom.app",
+      "versionCode": 1,
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./src/assets/images/android-icon-foreground.png",
@@ -42,6 +43,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "7ee741e9-eda4-404b-aa3e-bbe652a48048"
+      }
+    },
+    "owner": "pa4kata"
   }
 }
