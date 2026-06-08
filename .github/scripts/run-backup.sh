@@ -47,7 +47,10 @@ upload_to_backup_bucket() {
   local destination_key="$2"
 
   echo "Uploading $destination_key"
-  aws_r2 s3 cp "$source_file" "s3://$R2_BACKUP_BUCKET_NAME/$destination_key" --only-show-errors
+  aws_r2 s3api put-object \
+    --bucket "$R2_BACKUP_BUCKET_NAME" \
+    --key "$destination_key" \
+    --body "$source_file" > /dev/null
 }
 
 apply_retention() {

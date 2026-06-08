@@ -25,7 +25,7 @@ Recommended setup:
 
 - Media source bucket: stores posters and app media.
 - Backup destination bucket: private bucket used only for backup archives.
-- R2 API token: grants read access to the media source bucket and read/write/delete access to the backup bucket.
+- R2 API token: grants read access to the media source bucket and object read/write/delete access to the backup bucket.
 
 The workflow fails if `R2_BACKUP_BUCKET_NAME` equals `R2_MEDIA_BUCKET_NAME`.
 
