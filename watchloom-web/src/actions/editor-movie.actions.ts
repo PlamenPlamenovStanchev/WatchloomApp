@@ -2,7 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { notFound, redirect } from "next/navigation";
+import { eq } from "drizzle-orm";
 
+import { db } from "@/db";
+import { mediaAssets, movies } from "@/db/schema";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { getFirstValidationMessage } from "@/lib/validations/common";
 import { editorMovieSchema } from "@/lib/validations/editor-movie";
@@ -12,6 +15,9 @@ import {
   EditorMovieServiceError,
   updateEditorMovie,
 } from "@/services/editor-movie.service";
+import { StorageServiceError, uploadPosterFile } from "@/services/storage.service";
+
+const posterFileFieldName = "posterFile";
 
 const requireEditor = async () => {
   const user = await getCurrentUser();
@@ -67,6 +73,25 @@ const redirectWithError = (path: string, message: string): never => {
   redirect(`${path}?error=${encodeURIComponent(message)}`);
 };
 
+const redirectWithMessages = (path: string, messages: Record<string, string>): never => {
+  const params = new URLSearchParams(messages);
+  redirect(`${path}?${params.toString()}`);
+};
+
+const readOptionalPosterFile = async (formData: FormData) => {
+  const file = formData.get(posterFileFieldName);
+
+  if (!(file instanceof File) || (file.name === "" && file.size === 0)) {
+    return null;
+  }
+
+  return {
+    buffer: Buffer.from(await file.arrayBuffer()),
+    originalFilename: file.name,
+    contentType: file.type,
+  };
+};
+
 const parseMovieId = (value: string) => {
   const movieId = Number(value);
 
@@ -75,6 +100,41 @@ const parseMovieId = (value: string) => {
   }
 
   return movieId;
+};
+
+const uploadAndAttachMoviePoster = async (
+  movie: Awaited<ReturnType<typeof createEditorMovie>>,
+  formData: FormData,
+) => {
+  const file = await readOptionalPosterFile(formData);
+
+  if (!file) {
+    return null;
+  }
+
+  const uploaded = await uploadPosterFile({
+    ...file,
+    mediaType: "movie",
+    entityId: movie.id,
+    slugOrTitle: movie.slug || movie.title,
+  });
+
+  await db.transaction(async (tx) => {
+    await tx
+      .update(movies)
+      .set({ posterUrl: uploaded.publicUrl, updatedAt: new Date() })
+      .where(eq(movies.id, movie.id));
+    await tx.insert(mediaAssets).values({
+      mediaType: "movie",
+      movieId: movie.id,
+      assetType: "poster",
+      url: uploaded.publicUrl,
+      storageKey: uploaded.key,
+      provider: "cloudflare-r2",
+    });
+  });
+
+  return uploaded.publicUrl;
 };
 
 export async function createEditorMovieAction(formData: FormData) {
@@ -90,9 +150,24 @@ export async function createEditorMovieAction(formData: FormData) {
 
   try {
     const movie = await createEditorMovie(input);
+    const editPath = `/editor/movies/${movie.id}/edit`;
+
+    try {
+      await uploadAndAttachMoviePoster(movie, formData);
+    } catch (error) {
+      if (error instanceof StorageServiceError) {
+        revalidatePath("/editor/movies");
+        redirectWithMessages(editPath, {
+          success: "Movie created.",
+          posterError: error.message,
+        });
+      }
+
+      throw error;
+    }
 
     revalidatePath("/editor/movies");
-    redirect(`/editor/movies/${movie.id}/edit?success=${encodeURIComponent("Movie created.")}`);
+    redirect(`${editPath}?success=${encodeURIComponent("Movie created.")}`);
   } catch (error) {
     if (error instanceof EditorMovieServiceError) {
       redirectWithError("/editor/movies/new", error.message);
@@ -120,6 +195,21 @@ export async function updateEditorMovieAction(movieIdValue: string, formData: Fo
 
     if (!movie) {
       notFound();
+    }
+
+    try {
+      await uploadAndAttachMoviePoster(movie, formData);
+    } catch (error) {
+      if (error instanceof StorageServiceError) {
+        revalidatePath("/editor/movies");
+        revalidatePath(editPath);
+        redirectWithMessages(editPath, {
+          success: "Movie updated.",
+          posterError: error.message,
+        });
+      }
+
+      throw error;
     }
 
     revalidatePath("/editor/movies");

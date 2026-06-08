@@ -2,7 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { notFound, redirect } from "next/navigation";
+import { eq } from "drizzle-orm";
 
+import { db } from "@/db";
+import { mediaAssets, series } from "@/db/schema";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { getFirstValidationMessage } from "@/lib/validations/common";
 import { editorSeriesSchema } from "@/lib/validations/editor-series";
@@ -12,6 +15,9 @@ import {
   EditorSeriesServiceError,
   updateEditorSeries,
 } from "@/services/editor-series.service";
+import { StorageServiceError, uploadPosterFile } from "@/services/storage.service";
+
+const posterFileFieldName = "posterFile";
 
 const requireEditor = async () => {
   const user = await getCurrentUser();
@@ -67,6 +73,25 @@ const redirectWithError = (path: string, message: string): never => {
   redirect(`${path}?error=${encodeURIComponent(message)}`);
 };
 
+const redirectWithMessages = (path: string, messages: Record<string, string>): never => {
+  const params = new URLSearchParams(messages);
+  redirect(`${path}?${params.toString()}`);
+};
+
+const readOptionalPosterFile = async (formData: FormData) => {
+  const file = formData.get(posterFileFieldName);
+
+  if (!(file instanceof File) || (file.name === "" && file.size === 0)) {
+    return null;
+  }
+
+  return {
+    buffer: Buffer.from(await file.arrayBuffer()),
+    originalFilename: file.name,
+    contentType: file.type,
+  };
+};
+
 const parseSeriesId = (value: string) => {
   const seriesId = Number(value);
 
@@ -75,6 +100,41 @@ const parseSeriesId = (value: string) => {
   }
 
   return seriesId;
+};
+
+const uploadAndAttachSeriesPoster = async (
+  show: Awaited<ReturnType<typeof createEditorSeries>>,
+  formData: FormData,
+) => {
+  const file = await readOptionalPosterFile(formData);
+
+  if (!file) {
+    return null;
+  }
+
+  const uploaded = await uploadPosterFile({
+    ...file,
+    mediaType: "series",
+    entityId: show.id,
+    slugOrTitle: show.slug || show.title,
+  });
+
+  await db.transaction(async (tx) => {
+    await tx
+      .update(series)
+      .set({ posterUrl: uploaded.publicUrl, updatedAt: new Date() })
+      .where(eq(series.id, show.id));
+    await tx.insert(mediaAssets).values({
+      mediaType: "series",
+      seriesId: show.id,
+      assetType: "poster",
+      url: uploaded.publicUrl,
+      storageKey: uploaded.key,
+      provider: "cloudflare-r2",
+    });
+  });
+
+  return uploaded.publicUrl;
 };
 
 export async function createEditorSeriesAction(formData: FormData) {
@@ -90,9 +150,24 @@ export async function createEditorSeriesAction(formData: FormData) {
 
   try {
     const show = await createEditorSeries(input);
+    const editPath = `/editor/series/${show.id}/edit`;
+
+    try {
+      await uploadAndAttachSeriesPoster(show, formData);
+    } catch (error) {
+      if (error instanceof StorageServiceError) {
+        revalidatePath("/editor/series");
+        redirectWithMessages(editPath, {
+          success: "Series created.",
+          posterError: error.message,
+        });
+      }
+
+      throw error;
+    }
 
     revalidatePath("/editor/series");
-    redirect(`/editor/series/${show.id}/edit?success=${encodeURIComponent("Series created.")}`);
+    redirect(`${editPath}?success=${encodeURIComponent("Series created.")}`);
   } catch (error) {
     if (error instanceof EditorSeriesServiceError) {
       redirectWithError("/editor/series/new", error.message);
@@ -120,6 +195,21 @@ export async function updateEditorSeriesAction(seriesIdValue: string, formData: 
 
     if (!show) {
       notFound();
+    }
+
+    try {
+      await uploadAndAttachSeriesPoster(show, formData);
+    } catch (error) {
+      if (error instanceof StorageServiceError) {
+        revalidatePath("/editor/series");
+        revalidatePath(editPath);
+        redirectWithMessages(editPath, {
+          success: "Series updated.",
+          posterError: error.message,
+        });
+      }
+
+      throw error;
     }
 
     revalidatePath("/editor/series");

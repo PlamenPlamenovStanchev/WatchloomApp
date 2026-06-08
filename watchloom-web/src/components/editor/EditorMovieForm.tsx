@@ -115,6 +115,18 @@ export function EditorMovieForm({
           <input name="posterUrl" defaultValue={defaultValues?.posterUrl ?? ""} className={inputClass} />
         </label>
         <label className="block text-sm font-medium">
+          Poster file
+          <input
+            name="posterFile"
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            className={`${inputClass} file:mr-3 file:rounded-md file:border-0 file:bg-zinc-950 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white dark:file:bg-zinc-100 dark:file:text-zinc-950`}
+          />
+        </label>
+      </div>
+
+      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+        <label className="block text-sm font-medium">
           Backdrop URL
           <input name="backdropUrl" defaultValue={defaultValues?.backdropUrl ?? ""} className={inputClass} />
         </label>
