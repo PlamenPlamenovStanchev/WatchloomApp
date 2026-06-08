@@ -1,0 +1,39 @@
+name: Database and Storage Backup
+
+on:
+  # GitHub Actions cron schedules run in UTC.
+  schedule:
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: database-and-storage-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    name: Backup database and R2 media
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+      R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+      R2_REGION: ${{ secrets.R2_REGION }}
+      R2_MEDIA_BUCKET_NAME: ${{ secrets.R2_MEDIA_BUCKET_NAME }}
+      R2_BACKUP_BUCKET_NAME: ${{ secrets.R2_BACKUP_BUCKET_NAME }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install backup tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client zip unzip awscli
+
+      - name: Run backup
+        run: bash .github/scripts/run-backup.sh
