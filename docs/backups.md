@@ -29,6 +29,10 @@ Recommended setup:
 
 The workflow fails if `R2_BACKUP_BUCKET_NAME` equals `R2_MEDIA_BUCKET_NAME`.
 
+If the workflow fails with `AccessDenied` during `PutObject`, the backup script is correct but the R2 token cannot write to `R2_BACKUP_BUCKET_NAME`. In Cloudflare, update the token so it can write objects to the private backup bucket, or replace `R2_BACKUP_BUCKET_NAME` with the correct writable bucket name.
+
+If the workflow fails during retention cleanup, the token also needs object delete access on the backup bucket.
+
 ## Schedule
 
 The workflow is named `Database and Storage Backup`.

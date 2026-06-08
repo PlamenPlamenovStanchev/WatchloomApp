@@ -35,6 +35,37 @@ validate_env() {
   fi
 }
 
+verify_r2_backup_access() {
+  local probe_key=".backup-access-check/$(date -u +%Y%m%d%H%M%S)-${GITHUB_RUN_ID:-local}.txt"
+  local probe_file
+  probe_file="$(mktemp)"
+
+  printf "watchloom backup access check\n" > "$probe_file"
+
+  echo "Verifying write access to R2 backup bucket."
+
+  if ! aws_r2 s3api put-object \
+    --bucket "$R2_BACKUP_BUCKET_NAME" \
+    --key "$probe_key" \
+    --body "$probe_file" > /dev/null; then
+    rm -f "$probe_file"
+    echo "Unable to write to R2_BACKUP_BUCKET_NAME: $R2_BACKUP_BUCKET_NAME" >&2
+    echo "Check that the bucket exists and that the R2 token has object write access to the backup bucket." >&2
+    exit 1
+  fi
+
+  if ! aws_r2 s3api delete-object \
+    --bucket "$R2_BACKUP_BUCKET_NAME" \
+    --key "$probe_key" > /dev/null; then
+    rm -f "$probe_file"
+    echo "Unable to delete from R2_BACKUP_BUCKET_NAME: $R2_BACKUP_BUCKET_NAME" >&2
+    echo "Retention cleanup requires object delete access on the backup bucket." >&2
+    exit 1
+  fi
+
+  rm -f "$probe_file"
+}
+
 aws_r2() {
   AWS_ACCESS_KEY_ID="$R2_ACCESS_KEY_ID" \
     AWS_SECRET_ACCESS_KEY="$R2_SECRET_ACCESS_KEY" \
@@ -88,6 +119,7 @@ apply_retention() {
 
 main() {
   validate_env
+  verify_r2_backup_access
 
   local day_stamp
   local week_stamp
