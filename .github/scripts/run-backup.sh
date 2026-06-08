@@ -4,6 +4,11 @@ set -euo pipefail
 BACKUP_ROOT="${BACKUP_ROOT:-backups}"
 BACKUP_OUT_DIR="$BACKUP_ROOT/out"
 R2_MEDIA_TMP_DIR="$BACKUP_ROOT/tmp/r2-media"
+PG_DUMP_BIN="${PG_DUMP_BIN:-pg_dump}"
+
+if [[ -x "/usr/lib/postgresql/17/bin/pg_dump" ]]; then
+  PG_DUMP_BIN="/usr/lib/postgresql/17/bin/pg_dump"
+fi
 
 require_env() {
   local name="$1"
@@ -100,7 +105,7 @@ main() {
   mkdir -p "$BACKUP_OUT_DIR" "$R2_MEDIA_TMP_DIR"
 
   echo "Creating PostgreSQL backup archive."
-  pg_dump "$DATABASE_URL" --no-owner --no-acl --clean --if-exists | gzip -c > "$db_backup_file"
+  "$PG_DUMP_BIN" "$DATABASE_URL" --no-owner --no-acl --clean --if-exists | gzip -c > "$db_backup_file"
 
   echo "Copying R2 media bucket to local backup folder."
   aws_r2 s3 sync "s3://$R2_MEDIA_BUCKET_NAME" "$R2_MEDIA_TMP_DIR" --only-show-errors
