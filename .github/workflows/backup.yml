@@ -33,7 +33,15 @@ jobs:
       - name: Install backup tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y postgresql-client zip unzip awscli
+          sudo apt-get install -y postgresql-client zip unzip pipx
+          pipx install awscli
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Verify backup tools
+        run: |
+          pg_dump --version
+          zip --version | head -n 1
+          aws --version
 
       - name: Run backup
         run: bash .github/scripts/run-backup.sh
